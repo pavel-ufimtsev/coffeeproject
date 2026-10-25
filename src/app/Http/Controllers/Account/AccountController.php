@@ -18,6 +18,7 @@ class AccountController extends Controller
     {
         return view('account.index', [
             'user' => $request->user(),
+            'orders' => $request->user()->orders()->withSum('items as item_count', 'quantity')->latest('id')->paginate(10),
         ]);
     }
 

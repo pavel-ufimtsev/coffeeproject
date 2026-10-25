@@ -2,7 +2,8 @@
 <x-layouts.shop :title="$title">
     <div class="container account">
         <nav class="account__nav" aria-label="{{ __('My account') }}">
-            <a href="{{ route('account.index') }}" @if (request()->routeIs('account.index')) aria-current="page" @endif>{{ __('Overview') }}</a>
+            <a href="{{ route('account.index') }}" @if (request()->routeIs('account.index', 'account.orders.*')) aria-current="page" @endif>{{ __('Orders') }}</a>
+            <a href="{{ route('account.addresses.index') }}" @if (request()->routeIs('account.addresses.*')) aria-current="page" @endif>{{ __('Addresses') }}</a>
             <a href="{{ route('account.settings') }}" @if (request()->routeIs('account.settings')) aria-current="page" @endif>{{ __('Settings') }}</a>
         </nav>
 

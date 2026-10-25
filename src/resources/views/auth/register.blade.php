@@ -4,7 +4,7 @@
 
         <x-form.input name="name" :label="__('Name')" required autofocus autocomplete="name" />
 
-        <x-form.input name="email" type="email" :label="__('Email address')" required autocomplete="email" />
+        <x-form.input name="email" type="email" :label="__('Email address')" :value="request('email')" required autocomplete="email" />
 
         <x-form.input name="password" type="password" :label="__('Password')" required autocomplete="new-password" :passwordrules="$passwordRules" />
 

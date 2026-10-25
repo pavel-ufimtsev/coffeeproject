@@ -144,6 +144,26 @@ class RetailCrm
     }
 
     /**
+     * Create an order in the configured store. Returns the retailCRM order ID.
+     *
+     * @param  array<string, mixed>  $order
+     */
+    public function createOrder(array $order): int
+    {
+        return (int) $this->call(fn (ApiVersion5 $api) => $api->ordersCreate($order, $this->site))['id'];
+    }
+
+    /**
+     * Find a customer by email, so repeat orders join the same customer card.
+     */
+    public function findCustomerId(string $email): ?int
+    {
+        $customers = $this->call(fn (ApiVersion5 $api) => $api->customersList(['email' => $email], 1, 20))['customers'] ?? [];
+
+        return isset($customers[0]['id']) ? (int) $customers[0]['id'] : null;
+    }
+
+    /**
      * Get the low-level SDK client for calls not wrapped here yet.
      */
     public function api(): ApiVersion5

@@ -60,7 +60,7 @@ const runSync = () => {
                 <p class="text-sm text-muted-foreground">
                     {{
                         $t(
-                            'Prices are copied from retailCRM every 30 minutes. The site never changes retailCRM.',
+                            'Prices are copied from retailCRM every 30 minutes. New orders are sent there when RETAILCRM_PUSH_ORDERS is on.',
                         )
                     }}
                     <a

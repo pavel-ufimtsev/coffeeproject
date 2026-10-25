@@ -260,9 +260,26 @@ class CatalogListing
     }
 
     /**
+     * The shopper's filters and sort as a query string ("?taste=berry"), one
+     * group left out: brew-method links keep the other choices.
+     */
+    public function queryString(?string $except = null): string
+    {
+        return $this->buildQuery(array_diff_key($this->selected, [$except => true]), $this->sort);
+    }
+
+    /**
      * @param  array<string, list<string>>  $selected
      */
     private function url(array $selected, string $sort): string
+    {
+        return $this->request->url().$this->buildQuery($selected, $sort);
+    }
+
+    /**
+     * @param  array<string, list<string>>  $selected
+     */
+    private function buildQuery(array $selected, string $sort): string
     {
         $query = array_filter(array_map(fn (array $values) => implode(',', $values), $selected));
 
@@ -270,7 +287,7 @@ class CatalogListing
             $query['sort'] = $sort;
         }
 
-        return $this->request->url().($query ? '?'.http_build_query($query) : '');
+        return $query ? '?'.http_build_query($query) : '';
     }
 
     /**

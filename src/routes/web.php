@@ -1,10 +1,16 @@
 <?php
 
 use App\Http\Controllers\Account\AccountController;
+use App\Http\Controllers\Account\AddressController;
+use App\Http\Controllers\Account\OrderController;
 use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\Account\ProfileController;
+use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
+use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\CookieConsentController;
 use App\Http\Controllers\Shop\HomeController;
+use App\Http\Controllers\Shop\PaymentController;
 use App\Http\Controllers\Shop\SitemapController;
 use App\Http\Controllers\Shop\YandexFeedController;
 use Illuminate\Support\Facades\Route;
@@ -21,12 +27,46 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('feeds/yandex.xml', YandexFeedController::class)->name('feeds.yandex');
 
+// /privacy-policy is the old site's address.
+Route::view('privacy-policy', 'shop.legal.privacy')->name('legal.privacy');
+Route::view('terms', 'shop.legal.terms')->name('legal.terms');
+Route::post('cookie-consent', CookieConsentController::class)->middleware('throttle:30,1')->name('cookie-consent');
+
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'show'])->name('show');
+    Route::post('items', [CartController::class, 'store'])->middleware('throttle:60,1')->name('store');
+    Route::patch('items/{key}', [CartController::class, 'update'])->where('key', '\d+-[a-z]+')->name('update');
+    Route::delete('items/{key}', [CartController::class, 'destroy'])->where('key', '\d+-[a-z]+')->name('destroy');
+});
+
+Route::prefix('checkout')->name('checkout.')->controller(CheckoutController::class)->group(function () {
+    Route::get('/', 'show')->name('show');
+    Route::post('/', 'store')->middleware('throttle:10,1')->name('store');
+    Route::get('summary', 'summary')->name('summary');
+    Route::post('promo', 'applyPromo')->middleware('throttle:20,1')->name('promo.apply');
+    Route::delete('promo', 'removePromo')->name('promo.remove');
+    Route::get('login', 'login')->name('login');
+    Route::get('complete/{order:token}', 'complete')->name('complete');
+});
+
+// T-Bank online payment. These three addresses are also set in the terminal settings.
+Route::post('api/tinkoff/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
+Route::get('payment/success', [PaymentController::class, 'success'])->name('payment.success');
+Route::get('payment/failed', [PaymentController::class, 'failed'])->name('payment.failed');
+Route::post('payment/{order:token}/retry', [PaymentController::class, 'retry'])->middleware('throttle:10,1')->name('payment.retry');
+Route::post('payment/{order:token}/cash', [PaymentController::class, 'payOnDelivery'])->middleware('throttle:10,1')->name('payment.cash');
+
 Route::middleware('auth')->prefix('account')->name('account.')->group(function () {
     Route::get('/', [AccountController::class, 'index'])->name('index');
     Route::get('settings', [AccountController::class, 'edit'])->name('settings');
     Route::delete('/', [AccountController::class, 'destroy'])->name('destroy');
 
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+    Route::patch('addresses/{address}/default', [AddressController::class, 'makeDefault'])->name('addresses.default');
+    Route::resource('addresses', AddressController::class)->except('show');
 
     Route::put('password', [PasswordController::class, 'update'])
         ->middleware('throttle:6,1')

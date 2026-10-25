@@ -29,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // T-Bank signs its notifications instead (see PaymentController).
+        $middleware->validateCsrfTokens(except: ['api/tinkoff/webhook']);
+
         // Global, so old URLs that match no route are redirected before routing 404s them.
         $middleware->prepend(RedirectLegacyUrls::class);
 

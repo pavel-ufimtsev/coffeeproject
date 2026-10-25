@@ -1,5 +1,7 @@
 // Storefront entry. Plain ES modules: each enhancement loads only on pages
-// that have the matching markup.
+// that have the matching markup. Everything works without JavaScript too.
+
+document.documentElement.classList.add('js');
 
 const passkeyLogin = document.querySelector('[data-passkey-login]');
 
@@ -17,14 +19,32 @@ if (twoFactor) {
     );
 }
 
-const buyForm = document.querySelector('[data-buy]');
-
-if (buyForm) {
-    void import('./shop/product-buy.js').then(({ init }) => init(buyForm));
+if (document.querySelector('[data-cart-open], [data-add-to-cart]')) {
+    void import('./shop/cart.js').then(({ init }) =>
+        init(document.querySelector('[data-cart]')),
+    );
 }
 
-const filters = document.querySelector('[data-filters]');
+const catalog = document.querySelector('[data-catalog]');
 
-if (filters) {
-    void import('./shop/catalog-filters.js').then(({ init }) => init(filters));
+if (catalog) {
+    void import('./shop/catalog-live.js').then(({ init }) => init(catalog));
+}
+
+const cookieBanner = document.querySelector('[data-cookie-banner]');
+
+if (cookieBanner) {
+    void import('./shop/cookie-banner.js').then(({ init }) =>
+        init(cookieBanner),
+    );
+}
+
+if (document.querySelector('[data-dropdown]')) {
+    void import('./shop/dropdown.js').then(({ init }) => init());
+}
+
+const checkout = document.querySelector('[data-checkout]');
+
+if (checkout?.querySelector('[data-checkout-form]')) {
+    void import('./shop/checkout.js').then(({ init }) => init(checkout));
 }

@@ -14,6 +14,9 @@ use App\Http\Controllers\Admin\Catalog\RoasterController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Settings\ProfileController;
 use App\Http\Controllers\Admin\Settings\SecurityController;
+use App\Http\Controllers\Admin\Shop\DeliveryController;
+use App\Http\Controllers\Admin\Shop\OrderController;
+use App\Http\Controllers\Admin\Shop\PromoCodeController;
 use App\Http\Controllers\Admin\UserController;
 /* @chisel-password-confirmation */
 use Illuminate\Auth\Middleware\RequirePassword;
@@ -28,6 +31,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', DashboardController::class)->name('dashboard');
 
 Route::resource('users', UserController::class)->except('show');
+
+// Shop: orders, promo codes, delivery prices.
+Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
+Route::post('orders/{order}/retailcrm', [OrderController::class, 'pushToRetailCrm'])->middleware('throttle:10,1')->name('orders.retailcrm');
+Route::resource('promo-codes', PromoCodeController::class)->except('show');
+Route::get('delivery', [DeliveryController::class, 'edit'])->name('delivery.edit');
+Route::put('delivery', [DeliveryController::class, 'update'])->name('delivery.update');
 
 // Catalog. Reorder routes come before the resources so "order" is not taken for an ID.
 Route::resource('products', ProductController::class)->except('show');

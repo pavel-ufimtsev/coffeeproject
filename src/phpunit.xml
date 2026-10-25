@@ -27,6 +27,15 @@
         <env name="RETAILCRM_URL" value=""/>
         <env name="RETAILCRM_API_KEY" value=""/>
         <env name="RETAILCRM_SITE" value=""/>
+        <env name="RETAILCRM_PUSH_ORDERS" value="false"/>
+        <env name="CHECKOUT_CASH_ENABLED" value="true"/>
+        <env name="CHECKOUT_TBANK_ENABLED" value="false"/>
+        <env name="TBANK_MODE" value="test"/>
+        <env name="TBANK_TEST_TERMINAL_KEY" value=""/>
+        <env name="TBANK_TEST_PASSWORD" value=""/>
+        <env name="TBANK_LIVE_TERMINAL_KEY" value=""/>
+        <env name="TBANK_LIVE_PASSWORD" value=""/>
+        <env name="TBANK_RECEIPTS" value="false"/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>

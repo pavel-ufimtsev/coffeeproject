@@ -39,7 +39,8 @@
                 @endif
 
                 @if ($purchasable)
-                    <form class="buy" data-buy onsubmit="return false">
+                    <form method="POST" action="{{ route('cart.store') }}" class="buy" data-buy data-add-to-cart data-price-scope>
+                        @csrf
                         <p class="buy__price">
                             <strong data-price>{{ Money::rub($selected->price) }}</strong>
                             <s data-old-price @unless ($selected->isDiscounted()) hidden @endunless>{{ $selected->isDiscounted() ? Money::rub($selected->old_price) : '' }}</s>
@@ -65,15 +66,19 @@
                         @if ($grinds)
                             <div class="field">
                                 <label for="grind">{{ __('Grind') }}</label>
-                                <select id="grind" name="grind">
-                                    @foreach ($grinds as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
+                                <span class="select">
+                                    <select id="grind" name="grind">
+                                        @foreach ($grinds as $value => $label)
+                                            <option value="{{ $value }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </span>
                             </div>
                         @endif
 
-                        <button type="submit" class="button button--block" disabled>{{ __('Online ordering opens soon') }}</button>
+                        <button type="submit" class="button button--block button--large add-button" data-done-label="{{ __('Added') }}">
+                            <span class="add-button__label">{{ __('Add to cart') }}</span>
+                        </button>
                     </form>
                 @elseif (! $isArchived)
                     <p class="notice notice--warning">{{ __('Not available right now.') }}</p>
