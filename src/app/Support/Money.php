@@ -10,7 +10,7 @@ class Money
     public static function rub(float|int|string|null $amount): string
     {
         if ($amount === null || $amount === '') {
-            return '—';
+            return '-';
         }
 
         $amount = (float) $amount;

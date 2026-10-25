@@ -104,11 +104,12 @@ class CatalogController extends Controller
             'quickLinks' => FilterValue::brewLandings($root)->get(),
             'breadcrumbs' => $breadcrumbs,
             'meta' => [
-                'title' => ($landing ?? $category)->seo_title ?: __(':heading — buy with delivery across Russia | Coffee Project', ['heading' => $heading]),
+                'title' => ($landing ?? $category)->seo_title ?: __(':heading: buy with delivery across Russia | Coffee Project', ['heading' => $heading]),
                 'description' => ($landing ?? $category)->seo_description
                     ?: __(':heading from Coffee Project: :count items. Roasted in Ekaterinburg, delivered across Russia.', ['heading' => $heading, 'count' => $listing->products->count()]),
                 'canonical' => url($path),
                 'robots' => $indexable ? 'index,follow' : 'noindex,follow',
+                'image' => $listing->products->first()?->mainImage?->url(),
             ],
             'jsonLd' => [$this->breadcrumbJsonLd($breadcrumbs)],
         ]);
@@ -156,11 +157,13 @@ class CatalogController extends Controller
             'breadcrumbs' => $breadcrumbs,
             'meta' => [
                 'title' => $product->seo_title ?: ($minPrice && ! $isArchived
-                    ? __(':name — price from :price ₽ | Coffee Project', ['name' => $product->name, 'price' => number_format($minPrice, 0, ',', ' ')])
+                    ? __(':name, price from :price ₽ | Coffee Project', ['name' => $product->name, 'price' => number_format($minPrice, 0, ',', ' ')])
                     : "{$product->name} | Coffee Project"),
                 'description' => $product->seo_description ?: Str::limit(str_replace("\n", ' ', $product->summary ?? $product->tagline ?? $product->name), 160),
                 'canonical' => url($product->path()),
                 'robots' => $product->status === ProductStatus::Active ? 'index,follow' : 'noindex,follow',
+                'image' => $product->images->first()?->url(),
+                'og_type' => 'product',
             ],
             'jsonLd' => array_filter([$this->productJsonLd($product), $this->breadcrumbJsonLd($breadcrumbs)]),
         ]);

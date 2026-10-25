@@ -117,7 +117,7 @@ const hide = (products: CrmRow[]) => {
                     <p class="text-muted-foreground">
                         <template v-for="(offer, i) in product.offers" :key="i">
                             <template v-if="i">; </template>
-                            {{ offer.name }} — {{ formatPrice(offer.price) }}
+                            {{ offer.name }} · {{ formatPrice(offer.price) }}
                         </template>
                     </p>
                 </div>

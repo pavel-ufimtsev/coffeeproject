@@ -93,7 +93,7 @@ defineProps<{ promoCodes: PromoRow[] }>();
                             {{ promo.value_label }}
                         </td>
                         <td class="px-4 py-3 text-muted-foreground">
-                            {{ promo.period ?? '—' }}
+                            {{ promo.period ?? '-' }}
                         </td>
                         <td class="px-4 py-3 text-right tabular-nums">
                             {{ promo.used_count

@@ -132,7 +132,7 @@ const nextPage = computed(() => props.redirects.links.at(-1)?.url ?? null);
                         <td
                             class="px-4 py-2 text-muted-foreground tabular-nums"
                         >
-                            {{ redirect.last_hit_at ?? '—' }}
+                            {{ redirect.last_hit_at ?? '-' }}
                         </td>
                     </tr>
                     <tr v-if="redirects.data.length === 0">

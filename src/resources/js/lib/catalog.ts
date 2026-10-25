@@ -53,7 +53,7 @@ const rub = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
  */
 export function formatPrice(price: number | string | null | undefined): string {
     if (price === null || price === undefined || price === '') {
-        return '—';
+        return '-';
     }
 
     return `${rub.format(Number(price))} ₽`;

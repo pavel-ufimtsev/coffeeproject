@@ -176,7 +176,7 @@ const nextPage = computed(() => props.orders.links.at(-1)?.url ?? null);
                                 class="size-4 text-destructive"
                                 :aria-label="$t('Failed')"
                             />
-                            <span v-else class="text-muted-foreground">—</span>
+                            <span v-else class="text-muted-foreground">-</span>
                         </td>
                     </tr>
                     <tr v-if="orders.data.length === 0">

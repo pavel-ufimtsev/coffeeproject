@@ -27,11 +27,11 @@ A fixed list in code, not a table. Each type defines its spec fields, purchase o
 | Type | Spec fields | Options at purchase | Example filter groups |
 |---|---|---|---|
 | `coffee` | country, region, farm, altitude, harvest, process, varieties, SCA score, roast level, tasting notes, roaster's notes | grind (8 choices, no price change) | brew method, origin, taste, collection, roaster, ships from |
-| `drip` | as coffee, plus pieces per box | — | origin, collection |
-| `tea` | tea type, origin, harvest, brewing instructions | — | tea type |
-| `accessory` | brand, material, volume, compatibility | — | accessory type, brand |
-| `certificate` | face value | — | — |
-| `guide` | format (print / PDF) | — | — |
+| `drip` | as coffee, plus pieces per box | - | origin, collection |
+| `tea` | tea type, origin, harvest, brewing instructions | - | tea type |
+| `accessory` | brand, material, volume, compatibility | - | accessory type, brand |
+| `certificate` | face value | - | - |
+| `guide` | format (print / PDF) | - | - |
 
 ### Tables
 
@@ -155,7 +155,7 @@ These affect phase 1 unless noted.
 2. **The 5 guides and maps.** Paid products, free downloads or blog content? If they are sold, they need retailCRM products.
 3. **Taste filters.** Approve the taste tags proposed from each coffee's tasting notes, or leave taste out of phase 1.
 4. **Roaster filter.** Keep it with 2 roasters, or wait until a partner joins?
-5. **Mixed drip set.** Confirm it is retailCRM #704 "Набор дрип кофе — ассорти из 8 сортов кофе" (790 ₽ / 1 280 ₽).
+5. **Mixed drip set.** Confirm it is retailCRM #704 "Набор дрип кофе - ассорти из 8 сортов кофе" (790 ₽ / 1 280 ₽).
 6. **Bundles and sale items.** retailCRM has "РАСПРОДАЖА - …" copies of normal products. On the new site, sale is a collection plus an old price on the normal product. Can those copies be retired in retailCRM?
 7. **Where products are created long term.** Keep creating them in retailCRM and linking them (recommended for now), or later make the site the source and feed retailCRM through ICML.
 8. **Phase 3:** real delivery options and times for Moscow and St. Petersburg, and whether there is any physical point in Moscow.

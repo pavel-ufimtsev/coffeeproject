@@ -1,5 +1,5 @@
 <x-layouts.shop :meta="[
-    'title' => __('Coffee Project — freshly roasted coffee with delivery across Russia'),
+    'title' => __('Coffee Project: freshly roasted coffee with delivery across Russia'),
     'description' => __('Specialty coffee roasted to order in Ekaterinburg. Coffee beans, drip bags and tea with delivery across Russia.'),
     'canonical' => route('home'),
 ]" class="site-main--flush">
@@ -36,10 +36,10 @@
         @php
             // What each method does to the cup, in a line.
             $taglines = [
-                'espresso' => 'Плотное тело и сладость — в чашке и с молоком',
+                'espresso' => 'Плотное тело и сладость, в чашке и с молоком',
                 'pourover' => 'Чистый, яркий вкус с фруктовыми нотами',
                 'chemex' => 'Лёгкий и прозрачный, раскрывает кислинку',
-                'aeropress' => 'Быстро и насыщенно — дома и в дороге',
+                'aeropress' => 'Быстро и насыщенно, дома и в дороге',
                 'drip' => 'Просто и стабильно, на всю семью',
                 'french' => 'Плотный и бархатистый, без лишних хлопот',
                 'cezve' => 'Крепкий и ароматный, по-домашнему',
@@ -93,7 +93,7 @@
                     </li>
                     <li class="perk">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>
-                        <span><strong>{{ __('Ground for your method') }}</strong> {{ __('Free of charge — or in whole beans, if you grind yourself.') }}</span>
+                        <span><strong>{{ __('Ground for your method') }}</strong> {{ __('Free of charge, or in whole beans if you grind yourself.') }}</span>
                     </li>
                     <li class="perk">
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>

@@ -1,7 +1,7 @@
 @props(['title', 'description', 'updated', 'sections' => []])
 {{-- A legal document: heading, edition date, contents and the numbered sections in the slot. --}}
 <x-layouts.shop :meta="[
-    'title' => $title.' — '.config('shop.name'),
+    'title' => $title.' | '.config('shop.name'),
     'description' => $description,
     'canonical' => url()->current(),
 ]">

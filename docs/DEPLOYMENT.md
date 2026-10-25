@@ -2,7 +2,7 @@
 
 Production runs without Docker on a Debian or Ubuntu server: nginx, PHP 8.5-FPM, MySQL 8.0, Supervisor (queue worker) and cron (scheduler).
 
-Every push to `main` runs the checks in GitHub Actions. When they pass, Actions connects to the server over SSH and runs [`deploy.sh`](../deploy.sh), which does the following:
+Deploys are manual: push to `main`, then log into the server and run [`deploy.sh`](../deploy.sh) as `coffeeproject`. It does the following:
 
 1. Pulls the new commit.
 2. Installs dependencies and builds the frontend.
@@ -12,7 +12,7 @@ Every push to `main` runs the checks in GitHub Actions. When they pass, Actions 
 The site shows a maintenance page for the minute or so this takes. Resend retries webhooks that arrive during that time, and `mail:sync` catches anything missed.
 
 ```
-push to main ─▶ GitHub Actions: tests & checks ─▶ ssh coffeeproject@server ./deploy.sh
+push to main ─▶ ssh into the server ─▶ sudo -u coffeeproject -i ─▶ ./deploy.sh
 ```
 
 The server configs live in [`deploy/`](../deploy):
@@ -243,104 +243,36 @@ It should end with `==> Deployed <commit>`. Open `https://your.real.domain` and 
 
 ---
 
-## Part 2: Let GitHub Actions deploy (once)
-
-GitHub Actions needs its own key to **log into the server** as `coffeeproject` and run `deploy.sh`. It's called `coffeeproject_actions`. Everything below runs **on the server as `coffeeproject`** (`sudo -u coffeeproject -i`). You only copy values into GitHub.
-
-### 1. Create the Actions key on the server
-
-```bash
-ssh-keygen -t ed25519 -N "" -C "coffeeproject-actions-deploy" -f ~/.ssh/coffeeproject_actions
-
-# allow this key to log in as coffeeproject
-cat ~/.ssh/coffeeproject_actions.pub >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-```
-
-Test the login the way GitHub will use it:
-
-```bash
-ssh -i ~/.ssh/coffeeproject_actions -o IdentitiesOnly=yes coffeeproject@localhost 'cd /var/www/coffeeproject && git log -1 --oneline'
-# type "yes" once; it should print the latest commit
-```
-
-Now collect the values for GitHub. The private key goes into a GitHub secret. The server's host key lets Actions check that it's talking to your server. Use the server's public IP or hostname here, the same value you'll put in `SSH_HOST`:
-
-```bash
-cat ~/.ssh/coffeeproject_actions          # → SSH_PRIVATE_KEY (copy everything, BEGIN…END lines included)
-ssh-keyscan -p 22 your.server.ip      # → SSH_KNOWN_HOSTS (copy all lines)
-```
-
-When the secrets are saved on GitHub (next step), delete the private key from the server. Only GitHub needs it, and the public key in `authorized_keys` stays:
-
-```bash
-rm ~/.ssh/coffeeproject_actions
-```
-
-### 2. Add the secrets on GitHub
-
-Go to **repo → Settings → Environments → New environment** and name it `production`. Optionally, under "Deployment branches", allow only `main`, and add yourself as a required reviewer if you want to approve each deploy.
-
-In the `production` environment, add these **environment secrets**:
-
-| Secret | Value |
-| --- | --- |
-| `SSH_HOST` | server IP or hostname |
-| `SSH_USER` | `coffeeproject` |
-| `SSH_PRIVATE_KEY` | the output of `cat ~/.ssh/coffeeproject_actions` (the private key, `BEGIN`/`END` lines included) |
-| `SSH_KNOWN_HOSTS` | the `ssh-keyscan` output |
-| `SSH_PORT` | only if SSH isn't on port 22 |
-
-### 3. Turn deploys on
-
-Go to **repo → Settings → Secrets and variables → Actions → Variables tab → New repository variable** and add:
-
-| Variable | Value |
-| --- | --- |
-| `DEPLOY_ENABLED` | `true` |
-| `DEPLOY_PATH` | only if the app isn't in `/var/www/coffeeproject` |
-
-`DEPLOY_ENABLED` has to be a **repository** variable, not an environment variable, because it decides whether the deploy job starts at all.
-
-### 4. Deploy
-
-Push to `main`, or open **Actions → CI & Deploy → Run workflow**. The run shows two jobs, **Tests & checks** and **Deploy to production**. Pull requests only run the checks.
-
----
-
-## Part 3: Resend in production
+## Part 2: Resend in production
 
 1. Add each sending domain in CoffeeProject (**Domains → Add domain**), add the DNS records it shows, and click **Verify DNS**. Receiving adds an MX record that sends **all** mail for that domain to Resend (see the README).
 2. In Resend, go to **Webhooks → Add endpoint**, enter `https://your.real.domain/resend/webhook`, and select the `email.*` events.
-3. Copy the webhook's signing secret into `RESEND_WEBHOOK_SECRET` in `/var/www/coffeeproject/src/.env`, then run `./deploy.sh` (or push anything) so the cached config picks it up.
+3. Copy the webhook's signing secret into `RESEND_WEBHOOK_SECRET` in `/var/www/coffeeproject/src/.env`, then run `./deploy.sh` so the cached config picks it up.
 
 ---
 
 ## SSH keys at a glance
 
-There are two keys, both belonging to the `coffeeproject` user on the server. They must be different keys.
+There is one key, belonging to the `coffeeproject` user on the server.
 
 | Key | Direction | Private half | Public half |
 | --- | --- | --- | --- |
 | `coffeeproject_github` | server → GitHub, to **pull** code (`git fetch` in `deploy.sh`) | `/home/coffeeproject/.ssh/coffeeproject_github` | GitHub → repo → Settings → **Deploy keys** |
-| `coffeeproject_actions` | GitHub Actions → server, to **run** `deploy.sh` | GitHub → Environment `production` → secret **`SSH_PRIVATE_KEY`** (deleted from the server) | `/home/coffeeproject/.ssh/authorized_keys` |
 
 ## Troubleshooting
 
 - **`Permission denied (publickey)` from `git fetch` / `deploy.sh`:** the pull key isn't set up for the user running the command. Run `whoami` (it must be `coffeeproject`), `ssh -T git@github.com`, and check that `~/.ssh/config` points at `~/.ssh/coffeeproject_github`.
 - **`sudo: user coffeeproject is not allowed to execute …`:** you're already `coffeeproject`. Drop the `sudo -u coffeeproject` part, or `exit` to root first.
 - **`dubious ownership` or permission errors in git:** the repo was created by root. As root, run `chown -R coffeeproject:coffeeproject /var/www/coffeeproject`.
-- **`Permission denied (publickey)` in the Actions deploy log, but `./deploy.sh main` works when you run it as `coffeeproject`:** Actions logs in as a different user. The `SSH_USER` secret in the `production` environment must be exactly `coffeeproject`.
 - **Frontend build fails with `Could not load …/resources/js/actions/…` or `…/resources/js/routes/…`:** Wayfinder generated the route helpers from a stale route cache. As `coffeeproject`, run `cd /var/www/coffeeproject/src && php artisan optimize:clear`, then `./deploy.sh main` from the repo root. `deploy.sh` clears the caches before building, so this only happens with a `deploy.sh` older than that change.
-- **The Actions deploy job fails at SSH:** check the `production` secrets. `SSH_HOST` must be the address `ssh-keyscan` was run against, and `SSH_PRIVATE_KEY` must be the whole private key.
 
 ## Everyday use
 
-- **Release:** merge or push to `main`. That's it.
+- **Release:** push to `main`, then on the server run `sudo -u coffeeproject -i`, `cd /var/www/coffeeproject && ./deploy.sh`.
 - **Change the production `.env`:** edit `/var/www/coffeeproject/src/.env` and run `./deploy.sh` as `coffeeproject`. The config is cached, so edits have no effect until the next deploy.
 - **Logs:**
   - `src/storage/logs/laravel.log` for the app
   - `src/storage/logs/queue.log` for the worker
   - `/var/log/nginx/error.log` for nginx
-- **A failed deploy** leaves the site running (`deploy.sh` always turns maintenance mode off again) and shows the error in the Actions log. Fix the problem and push again.
+- **A failed deploy** leaves the site running (`deploy.sh` always turns maintenance mode off again) and prints the error in your terminal. Fix the problem, push, and run `./deploy.sh` again.
 - **Backups:** mailboxes, threads and received mail exist only in MySQL. Schedule a daily `mysqldump --single-transaction coffeeproject` and copy it off the server.

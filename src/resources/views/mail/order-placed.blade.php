@@ -20,7 +20,7 @@
 
 **{{ __('Delivery') }}:** {{ $order->delivery_method->label() }}, {{ $order->addressLine() }}@if ($order->accessLine()), {{ $order->accessLine() }}@endif
 
-**{{ __('Payment') }}:** {{ $order->payment_method->label() }}@if ($order->paymentStatusLabel()) — {{ mb_strtolower($order->paymentStatusLabel()) }}@endif
+**{{ __('Payment') }}:** {{ $order->payment_method->label() }}@if ($order->paymentStatusLabel()) ({{ mb_strtolower($order->paymentStatusLabel()) }})@endif
 
 <x-mail::button :url="$url">
 {{ __('View order') }}

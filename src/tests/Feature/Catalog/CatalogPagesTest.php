@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Catalog;
 
+use App\Models\Product;
 use App\Models\Redirect;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ImportsCatalogFixture;
@@ -73,6 +74,24 @@ class CatalogPagesTest extends TestCase
             ->assertSee('Отправка: Екатеринбург')
             ->assertSee('"@type":"Product"', false)
             ->assertSee('"priceCurrency":"RUB"', false);
+    }
+
+    public function test_link_previews_use_the_product_photo_or_the_brand_card()
+    {
+        $photo = Product::firstWhere('slug', 'kenya-wolf')->images->first()->url();
+
+        $this->get('/coffee/kenya-wolf')
+            ->assertSee('<meta property="og:type" content="product">', false)
+            ->assertSee('<meta property="og:title" content="Кения Волк', false)
+            ->assertSee('<meta property="og:url" content="'.url('/coffee/kenya-wolf').'">', false)
+            ->assertSee('<meta property="og:image" content="'.$photo.'">', false);
+
+        $this->get('/coffee/kenya')->assertSee('<meta property="og:image" content="'.$photo.'">', false);
+
+        $this->get('/chaj/puer-shu')->assertSee('<meta property="og:image" content="'.asset('images/og/default.jpg').'">', false);
+        $this->get('/')
+            ->assertSee('<meta property="og:type" content="website">', false)
+            ->assertSee('<meta property="og:image" content="'.asset('images/og/default.jpg').'">', false);
     }
 
     public function test_an_archived_product_page_stays_reachable_but_is_not_indexed()

@@ -44,7 +44,7 @@ class RetailCrmSyncCatalogCommand extends Command
             $this->components->warn(count($run->issues).' problems need attention:');
             $this->table(['Product', 'Variant', 'retailCRM', 'Problem'], collect($run->issues)->map(fn (array $issue) => [
                 $issue['product'],
-                $issue['variant'] ?? '—',
+                $issue['variant'] ?? '-',
                 $issue['retailcrm_product_id'].($issue['retailcrm_offer_id'] ? ' / '.$issue['retailcrm_offer_id'] : ''),
                 $issue['problem'],
             ]));
@@ -58,7 +58,7 @@ class RetailCrmSyncCatalogCommand extends Command
      */
     private function formatPrice(array $prices): string
     {
-        $price = $prices['price'] === null ? '—' : number_format((float) $prices['price'], 0, ',', ' ');
+        $price = $prices['price'] === null ? '-' : number_format((float) $prices['price'], 0, ',', ' ');
 
         return $prices['old_price'] === null
             ? $price

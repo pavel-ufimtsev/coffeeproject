@@ -349,7 +349,7 @@ const syncStatusLabel: Record<string, string> = {
                                             $t('Offer #:id', {
                                                 id:
                                                     variant.retailcrm_offer_id ??
-                                                    '—',
+                                                    '-',
                                             })
                                         }}
                                     </span>

@@ -57,7 +57,7 @@ const submit = () => {
                     redirect
                         ? $t('Used :count times, last on :date.', {
                               count: redirect.hits,
-                              date: redirect.last_hit_at ?? '—',
+                              date: redirect.last_hit_at ?? '-',
                           })
                         : undefined
                 "
@@ -86,9 +86,9 @@ const submit = () => {
             >
                 <NativeSelect id="status_code" v-model="form.status_code">
                     <option :value="301">
-                        {{ $t('301 — moved for good') }}
+                        {{ $t('301: moved for good') }}
                     </option>
-                    <option :value="302">{{ $t('302 — temporary') }}</option>
+                    <option :value="302">{{ $t('302: temporary') }}</option>
                 </NativeSelect>
             </Field>
             <Button :disabled="form.processing">

@@ -6,7 +6,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $meta['title'] ?? (($title ? $title.' — ' : '').config('app.name')) }}</title>
+        @php($pageTitle = $meta['title'] ?? (($title ? $title.' | ' : '').config('app.name')))
+        <title>{{ $pageTitle }}</title>
         @isset($meta['description'])
             <meta name="description" content="{{ $meta['description'] }}">
         @endisset
@@ -17,9 +18,29 @@
             <link rel="canonical" href="{{ $meta['canonical'] }}">
         @endisset
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
+        {{-- Link previews in messengers and social networks; pages without a photo get the brand card. --}}
+        <meta property="og:type" content="{{ $meta['og_type'] ?? 'website' }}">
+        <meta property="og:site_name" content="{{ config('shop.name') }}">
+        <meta property="og:locale" content="{{ app()->getLocale() === 'ru' ? 'ru_RU' : 'en_US' }}">
+        <meta property="og:title" content="{{ $pageTitle }}">
+        @isset($meta['description'])
+            <meta property="og:description" content="{{ $meta['description'] }}">
+        @endisset
+        <meta property="og:url" content="{{ $meta['canonical'] ?? url()->current() }}">
+        @if (isset($meta['image']))
+            <meta property="og:image" content="{{ $meta['image'] }}">
+        @else
+            <meta property="og:image" content="{{ asset('images/og/default.jpg') }}">
+            <meta property="og:image:width" content="1200">
+            <meta property="og:image:height" content="630">
+        @endif
+        <meta name="twitter:card" content="summary_large_image">
+
+        <link rel="icon" href="/favicon.ico" sizes="32x32">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
+        <meta name="theme-color" content="#ffffff">
 
         @fonts(['nunito', 'fira-sans-condensed'])
 

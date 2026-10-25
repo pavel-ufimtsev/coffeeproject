@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # CoffeeProject production deploy. Run on the server as the app user, from the repo
-# root (GitHub Actions does this over SSH after the checks pass):
+# root after pushing to main:
 #
 #   ./deploy.sh [branch]
 #
