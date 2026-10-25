@@ -74,7 +74,13 @@ class PushOrderToRetailCrm implements ShouldQueue
                 'quantity' => $item->quantity,
                 'properties' => $item->grind_label ? [['code' => 'grind', 'name' => 'Помол', 'value' => $item->grind_label]] : null,
             ]))->all(),
-            'delivery' => [
+            'delivery' => $order->pickup_point_code ? [
+                'code' => $order->delivery_method->retailCrmCode(),
+                'cost' => (float) $order->delivery_price,
+                'address' => ['city' => $order->city, 'text' => $order->pickupPointLine()],
+                // retailCRM's CDEK module creates the shipment to this point.
+                'data' => array_filter(['pickuppointId' => $order->pickup_point_code, 'tariff' => $order->delivery_tariff ? (string) $order->delivery_tariff : null]),
+            ] : [
                 'code' => $order->delivery_method->retailCrmCode(),
                 'cost' => (float) $order->delivery_price,
                 'address' => array_filter([

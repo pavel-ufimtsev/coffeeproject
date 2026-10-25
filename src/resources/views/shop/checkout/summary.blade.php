@@ -64,7 +64,7 @@
     @endif
     <div>
         <dt>{{ __('Delivery') }}</dt>
-        <dd>{{ $quote->deliveryPrice > 0 ? Money::rub($quote->deliveryPrice) : __('Free') }}</dd>
+        <dd>{{ ! $quote->deliveryReady() ? __('Choose a point') : ($quote->deliveryPrice > 0 ? Money::rub($quote->deliveryPrice) : __('Free')) }}</dd>
     </div>
     <div class="summary-totals__total">
         <dt>{{ __('Total') }}</dt>

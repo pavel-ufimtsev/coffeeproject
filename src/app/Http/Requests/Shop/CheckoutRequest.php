@@ -24,6 +24,8 @@ class CheckoutRequest extends FormRequest
     {
         $checkout = app(Checkout::class);
         $user = $this->user();
+        // A CDEK order goes to a pickup point: no street address to fill in or save.
+        $address = $this->isPickup() ? array_map(fn () => ['exclude'], AddressRules::rules()) : AddressRules::rules();
 
         return [
             'checkout_token' => ['required', 'string', 'max:40'],
@@ -33,12 +35,17 @@ class CheckoutRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'delivery_method' => ['required', Rule::in(array_map(fn (DeliveryMethod $m) => $m->value, $checkout->deliveryMethods()))],
-            'address_id' => $user ? ['nullable', Rule::in(['new', ...$user->addresses()->pluck('id')->map(fn ($id) => (string) $id)])] : ['prohibited'],
-            'address_label' => $user && $this->wantsNewAddress()
+            'address_id' => match (true) {
+                $this->isPickup() => ['exclude'],
+                $user !== null => ['nullable', Rule::in(['new', ...$user->addresses()->pluck('id')->map(fn ($id) => (string) $id)])],
+                default => ['prohibited'],
+            },
+            'address_label' => $user && ! $this->isPickup() && $this->wantsNewAddress()
                 ? ['required', 'string', 'max:50', Rule::unique('addresses', 'label')->where('user_id', $user->id)]
-                : ['nullable'],
-            ...AddressRules::rules(),
-            'payment_method' => ['required', Rule::in(array_map(fn (PaymentMethod $m) => $m->value, $checkout->paymentMethods()))],
+                : ['exclude'],
+            ...$address,
+            'pickup_point' => $this->isPickup() ? ['required', 'string', 'max:30'] : ['exclude'],
+            'payment_method' => ['required', Rule::in(array_map(fn (PaymentMethod $m) => $m->value, $checkout->paymentMethods(DeliveryMethod::tryFrom((string) $this->input('delivery_method')))))],
             'comment' => ['nullable', 'string', 'max:1000'],
             'consent' => ['accepted'],
         ];
@@ -56,10 +63,12 @@ class CheckoutRequest extends FormRequest
                 }
 
                 if (! $validator->errors()->has('city') && $this->input('delivery_method') === DeliveryMethod::Courier->value && ! AddressRules::isCourierCity($this->input('city'))) {
-                    $validator->errors()->add('city', __('Our courier delivers in :city only. Delivery across Russia by CDEK is coming soon.', ['city' => config('shop.courier_city')]));
+                    $validator->errors()->add('city', in_array(DeliveryMethod::Cdek, app(Checkout::class)->deliveryMethods(), true)
+                        ? __('Our courier delivers in :city only. For other cities choose CDEK.', ['city' => config('shop.courier_city')])
+                        : __('Our courier delivers in :city only.', ['city' => config('shop.courier_city')]));
                 }
 
-                if ($this->user() && $this->wantsNewAddress() && $this->user()->addresses()->count() >= Address::MAX_PER_USER) {
+                if ($this->user() && ! $this->isPickup() && $this->wantsNewAddress() && $this->user()->addresses()->count() >= Address::MAX_PER_USER) {
                     $validator->errors()->add('address_label', __('You can save up to :count addresses. Remove one in your account first.', ['count' => Address::MAX_PER_USER]));
                 }
             },
@@ -80,6 +89,7 @@ class CheckoutRequest extends FormRequest
             'address_label' => __('Address name'),
             'delivery_method' => __('Delivery method'),
             'payment_method' => __('Payment method'),
+            'pickup_point' => __('Pickup point'),
             'comment' => __('Order comment'),
         ];
     }
@@ -92,6 +102,7 @@ class CheckoutRequest extends FormRequest
         return [
             'consent.accepted' => __('Please agree to the processing of your personal data.'),
             'address_label.unique' => __('You already have an address with this name.'),
+            'pickup_point.required' => __('Choose a pickup point on the map.'),
         ];
     }
 
@@ -101,6 +112,14 @@ class CheckoutRequest extends FormRequest
     public function wantsNewAddress(): bool
     {
         return $this->input('address_id', 'new') === 'new' || blank($this->input('address_id'));
+    }
+
+    /**
+     * Whether the order goes to a CDEK pickup point rather than by courier.
+     */
+    public function isPickup(): bool
+    {
+        return $this->input('delivery_method') === DeliveryMethod::Cdek->value;
     }
 
     public function phone(): string

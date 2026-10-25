@@ -3141,6 +3141,155 @@
         white-space: nowrap;
     }
 
+    /* The CDEK point picked on the map, under the CDEK choice. */
+    .pickup-point {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4) var(--space-4);
+        padding-inline-start: calc(var(--space-4) + 1.125rem + var(--space-3));
+        font-size: 0.875rem;
+        line-height: 1.4;
+
+        &:not(:has(.pickup-point__icon)) {
+            grid-template-columns: 1fr auto;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        @container (inline-size < 30rem) {
+            grid-template-columns: auto 1fr;
+
+            .pickup-point__change {
+                grid-column: 1 / -1;
+            }
+        }
+    }
+
+    .pickup-point__icon {
+        align-self: start;
+        color: var(--color-accent);
+    }
+
+    .pickup-point__title {
+        font-weight: 700;
+    }
+
+    .pickup-point__note {
+        color: var(--color-muted);
+    }
+
+    .pickup-point__change {
+        white-space: nowrap;
+    }
+
+    /* Our pickup point map (CDEK_MAP=yandex21): a modal with search and a Yandex map. */
+    .pickup-map {
+        inset: 0;
+        margin: auto;
+        outline: none;
+        inline-size: min(60rem, 100vw - 2 * var(--space-4));
+        max-inline-size: none;
+        block-size: min(45rem, 100dvh - 2 * var(--space-4));
+        max-block-size: none;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-lg);
+        background: var(--color-surface);
+        color: var(--color-text);
+        overflow: clip;
+
+        &::backdrop {
+            background: rgb(20 20 20 / 0.45);
+        }
+
+        @media (width < 40rem) {
+            inline-size: 100vw;
+            block-size: 100dvh;
+            border-radius: 0;
+        }
+    }
+
+    .pickup-map__panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        block-size: 100%;
+    }
+
+    .pickup-map__header {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-3) var(--space-4);
+        border-block-end: 1px solid var(--color-border);
+
+        @media (width < 40rem) {
+            grid-template-columns: 1fr auto;
+
+            .pickup-map__search {
+                grid-column: 1 / -1;
+                grid-row: 2;
+            }
+        }
+    }
+
+    .pickup-map__title {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .pickup-map__search {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--space-2);
+        max-inline-size: 30rem;
+
+        .button {
+            padding-inline: var(--space-4);
+        }
+    }
+
+    .pickup-map__canvas {
+        flex: 1;
+        min-block-size: 0;
+    }
+
+    .pickup-map__status {
+        position: absolute;
+        inset-block-end: var(--space-4);
+        inset-inline: 0;
+        inline-size: fit-content;
+        max-inline-size: calc(100% - 2 * var(--space-4));
+        margin: 0 auto;
+        padding: var(--space-2) var(--space-4);
+        border-radius: 999px;
+        background: var(--color-ink);
+        color: var(--color-on-ink);
+        font-size: 0.875rem;
+        text-align: center;
+    }
+
+    /* Inside Yandex's balloon, which keeps its own light background. */
+    .pickup-balloon__address,
+    .pickup-balloon__note {
+        margin: 0 0 var(--space-2);
+        color: #333;
+        font-size: 0.875rem;
+    }
+
+    .pickup-balloon__note {
+        color: #6b6b6b;
+    }
+
+    .pickup-balloon__choose {
+        margin-block-start: var(--space-1);
+    }
+
     .free-delivery {
         display: grid;
         gap: var(--space-2);
@@ -3179,6 +3328,7 @@
     .checkout-delivery {
         display: grid;
         gap: var(--space-3);
+        container-type: inline-size;
     }
 
     .checkout-address {

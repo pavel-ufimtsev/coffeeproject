@@ -104,8 +104,8 @@ class PromoCodeController extends Controller
     {
         return match (true) {
             $promo->starts_at && $promo->ends_at => $promo->starts_at->format('d.m.Y').' – '.$promo->ends_at->format('d.m.Y'),
-            $promo->starts_at !== null => __('from :date', ['date' => $promo->starts_at->format('d.m.Y')]),
-            $promo->ends_at !== null => __('until :date', ['date' => $promo->ends_at->format('d.m.Y')]),
+            $promo->starts_at !== null => (string) __('from :date', ['date' => $promo->starts_at->format('d.m.Y')]),
+            $promo->ends_at !== null => (string) __('until :date', ['date' => $promo->ends_at->format('d.m.Y')]),
             default => null,
         };
     }

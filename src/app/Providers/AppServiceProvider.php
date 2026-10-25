@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart\Cart;
+use App\Services\Cdek\Cdek;
 use App\Services\RetailCrm\RetailCrm;
 use App\Services\TBank\TBank;
 use Carbon\CarbonImmutable;
@@ -30,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
         ));
 
         $this->app->singleton(TBank::class, fn () => TBank::fromConfig());
+
+        $this->app->singleton(Cdek::class, fn () => Cdek::fromConfig());
 
         // One cart per request, so the header badge and the cart endpoints
         // share the lines they have loaded.

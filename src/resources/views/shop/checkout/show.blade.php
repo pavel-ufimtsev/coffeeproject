@@ -1,13 +1,26 @@
 @php
+    use App\Enums\DeliveryMethod;
     use App\Enums\PaymentMethod;
     use App\Models\Address;
     use App\Support\Money;
     $address = $selectedAddress;
     $addressValue = fn (string $field) => $address?->{$field} ?? ($field === 'city' ? config('shop.courier_city') : null);
     $paymentMethods = $checkout->paymentMethods();
+    $isCdek = $quote->deliveryMethod === DeliveryMethod::Cdek;
+    // Settings for the CDEK pickup point map, loaded when the customer opens it.
+    $cdekMap = in_array(DeliveryMethod::Cdek, $checkout->deliveryMethods(), true) ? [
+        'apiKey' => config('services.cdek.yandex_maps_key'),
+        'servicePath' => route('checkout.cdek'),
+        'geocoderPath' => route('checkout.geocode'),
+        'map' => config('services.cdek.map'),
+        'goods' => [$checkout->cdek()->parcel($checkout->cart())],
+        'from' => ['code' => (int) config('services.cdek.from_city_code'), 'country_code' => 'RU'],
+        'defaultLocation' => $quote->pickupPoint?->city ?? config('shop.courier_city'),
+        'tariffs' => $checkout->cdek()->widgetTariffs(),
+    ] : null;
 @endphp
 <x-layouts.checkout :title="__('Checkout')">
-    <div class="checkout" data-checkout data-summary-url="{{ route('checkout.summary') }}">
+    <div class="checkout" data-checkout data-summary-url="{{ route('checkout.summary') }}" @if ($cdekMap) data-cdek-map="{{ json_encode($cdekMap, JSON_UNESCAPED_UNICODE) }}" @endif>
         <div class="checkout__main">
             <nav class="checkout-steps" aria-label="{{ __('Checkout steps') }}">
                 <a href="{{ route('cart.show') }}">{{ __('Cart') }}</a>
@@ -21,10 +34,11 @@
                 @csrf
                 <input type="hidden" name="checkout_token" value="{{ $checkoutToken }}">
                 <input type="hidden" name="expected_total" value="{{ $quote->total() }}" data-expected-total>
+                <input type="hidden" name="pickup_point" value="{{ $quote->pickupPoint?->code ?? old('pickup_point') }}" data-pickup-point-input>
 
-                @if ($errors->hasAny(['total', 'promo']))
+                @if ($errors->hasAny(['total', 'promo', 'pickup_point']))
                     <div class="notice notice--warning" role="alert">
-                        <p>{{ $errors->first('total') ?: $errors->first('promo') }}</p>
+                        <p>{{ $errors->first('total') ?: ($errors->first('promo') ?: $errors->first('pickup_point')) }}</p>
                     </div>
                 @elseif ($errors->any())
                     <div class="notice notice--warning" role="alert">
@@ -61,7 +75,7 @@
                         @include('shop.checkout.delivery-options')
                     </div>
 
-                    <fieldset class="checkout-address">
+                    <fieldset class="checkout-address" data-courier-only @if ($isCdek) hidden @endif>
                         <legend class="checkout-address__legend">{{ __('Delivery address') }}</legend>
 
                         @auth
@@ -121,9 +135,10 @@
                         <p class="notice notice--warning">{{ __('Online ordering is paused. Please call us at :phone to order.', ['phone' => config('shop.phone')]) }}</p>
                     @else
                         <div class="choice-list" role="radiogroup" aria-label="{{ __('Payment method') }}">
+                            @php($defaultPayment = $isCdek ? collect($paymentMethods)->first(fn ($m) => $m->isOnline()) : $paymentMethods[0])
                             @foreach ($paymentMethods as $method)
-                                <label class="choice">
-                                    <input type="radio" name="payment_method" value="{{ $method->value }}" @checked(old('payment_method', $paymentMethods[0]->value) === $method->value)
+                                <label class="choice" @unless ($method->isOnline()) data-courier-only @if ($isCdek) hidden @endif @endunless>
+                                    <input type="radio" name="payment_method" value="{{ $method->value }}" @checked(old('payment_method', $defaultPayment?->value) === $method->value && ! ($isCdek && ! $method->isOnline()))
                                         data-payment-method data-online="{{ $method->isOnline() ? '1' : '0' }}">
                                     <span class="choice__body">
                                         <span class="choice__title">{{ $method->label() }}</span>
@@ -203,4 +218,35 @@
             </div>
         </aside>
     </div>
+
+    @if ($cdekMap && $cdekMap['map'] === 'yandex21')
+        {{-- Our pickup point map (CDEK_MAP=yandex21); the CDEK widget brings its own popup. --}}
+        <dialog class="pickup-map" aria-labelledby="pickup-map-title" tabindex="-1" autofocus data-pickup-map
+            data-label-choose="{{ __('Deliver here') }}"
+            data-label-pickup="{{ __('CDEK pickup point') }}"
+            data-label-locker="{{ __('CDEK parcel locker') }}"
+            data-msg-zoom="{{ __('Zoom in to see pickup points') }}"
+            data-msg-empty="{{ __('No pickup points here. Try another area.') }}"
+            data-msg-not-found="{{ __('We could not find this place. Try a city name.') }}"
+            data-msg-error="{{ __('Could not load pickup points. Please try again.') }}">
+            <div class="pickup-map__panel">
+                <header class="pickup-map__header">
+                    <h2 class="pickup-map__title" id="pickup-map-title">{{ __('CDEK pickup points') }}</h2>
+                    <form class="pickup-map__search" role="search" data-pickup-map-search>
+                        <div class="float-field" data-field>
+                            <input id="pickup-map-query" name="query" type="search" placeholder=" " autocomplete="off" maxlength="200">
+                            <label for="pickup-map-query">{{ __('City or address') }}</label>
+                        </div>
+                        <button type="submit" class="button button--secondary">{{ __('Find') }}</button>
+                    </form>
+                    <button type="button" class="drawer__close" data-pickup-map-close>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                        <span class="visually-hidden">{{ __('Close') }}</span>
+                    </button>
+                </header>
+                <div class="pickup-map__canvas" data-pickup-map-canvas></div>
+                <p class="pickup-map__status" role="status" hidden data-pickup-map-status></p>
+            </div>
+        </dialog>
+    @endif
 </x-layouts.checkout>

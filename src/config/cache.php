@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\Cdek\CdekRate;
+use App\Services\Cdek\PickupPoint;
 use Illuminate\Support\Str;
 
 return [
@@ -129,8 +131,13 @@ return [
     | storage. By default, no PHP classes will be unserialized from your
     | cache to prevent gadget chain attacks if your APP_KEY is leaked.
     |
+    | CDEK pickup points and rates are cached between checkout redraws.
+    |
     */
 
-    'serializable_classes' => false,
+    'serializable_classes' => [
+        PickupPoint::class,
+        CdekRate::class,
+    ],
 
 ];

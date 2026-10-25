@@ -37,7 +37,7 @@ class HomeController extends Controller
      * Brew-method landing pages with how many coffees suit each and the
      * lowest price among them; methods with nothing on sale are left out.
      *
-     * @return Collection<int, array{method: FilterValue, count: int, from: float|null}>
+     * @return Collection<int, array{method: FilterValue, count: positive-int, from: float|null}>
      */
     private function brewMethods(Category $coffee): Collection
     {

@@ -18,7 +18,7 @@
 | **{{ __('Total') }}** | | **{{ Money::rub($order->total) }}** |
 </x-mail::table>
 
-**{{ __('Delivery') }}:** {{ $order->delivery_method->label() }}, {{ $order->addressLine() }}@if ($order->accessLine()), {{ $order->accessLine() }}@endif
+**{{ __('Delivery') }}:** {{ $order->delivery_method->label() }}, {{ $order->destinationLine() }}@if (! $order->pickup_point_code && $order->accessLine()), {{ $order->accessLine() }}@endif
 
 **{{ __('Payment') }}:** {{ $order->payment_method->label() }}@if ($order->paymentStatusLabel()) ({{ mb_strtolower($order->paymentStatusLabel()) }})@endif
 

@@ -1,3 +1,5 @@
+import { openPickupMap } from './cdek-map.js';
+
 /**
  * The checkout page. Everything here is an enhancement: without JavaScript
  * the form, promo code and saved-address links all work as plain requests.
@@ -5,6 +7,8 @@
  * - the order summary folds up on phones;
  * - picking a saved address fills the fields in place;
  * - the promo code and delivery method redraw the summary in the background;
+ * - CDEK opens the pickup point map; the point picked is priced on the
+ *   server, and the street address and cash payment step aside;
  * - the phone is formatted as it is typed;
  * - empty or malformed fields get an inline message instead of the
  *   browser's bubble, and the first one is scrolled into view;
@@ -16,11 +20,15 @@ export function init(root) {
     const form = root.querySelector('[data-checkout-form]');
     const aside = root.querySelector('[data-checkout-aside]');
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    const pointInput = form.querySelector('[data-pickup-point-input]');
+    const mapSettings = root.dataset.cdekMap
+        ? JSON.parse(root.dataset.cdekMap)
+        : null;
 
     form.noValidate = true;
 
     initSummaryToggle(aside);
-    initPaymentChoice(form);
+    const updatePayment = initPaymentChoice(form);
     initAddressPicker(form);
     initPhone(form.querySelector('[data-phone]'));
     initValidation(form);
@@ -57,6 +65,7 @@ export function init(root) {
             el.textContent = data.totalLabel;
         });
         form.querySelector('[data-expected-total]').value = data.total;
+        syncDeliveryFields();
 
         // Keep focus in the promo area: on the field after an error, on the
         // remove button after applying.
@@ -119,6 +128,60 @@ export function init(root) {
     const selectedDelivery = () =>
         form.querySelector('[name="delivery_method"]:checked')?.value ?? '';
 
+    const isPickup = () => selectedDelivery() === 'cdek';
+
+    const quoteUrl = () => {
+        const url = new URL(root.dataset.summaryUrl);
+        url.searchParams.set('delivery', selectedDelivery());
+
+        if (isPickup() && pointInput.value) {
+            url.searchParams.set('pickup_point', pointInput.value);
+        }
+
+        return url;
+    };
+
+    // CDEK goes to a pickup point and is paid online: hide the street
+    // address and cash payment, and move off cash if it was picked.
+    const syncDeliveryFields = () => {
+        const pickup = isPickup();
+
+        form.querySelectorAll('[data-courier-only]').forEach((el) => {
+            el.hidden = pickup;
+        });
+
+        const payment = form.querySelector('[data-payment-method]:checked');
+
+        if (!payment || payment.closest('[hidden]')) {
+            const visible = [
+                ...form.querySelectorAll('[data-payment-method]'),
+            ].find((input) => !input.closest('[hidden]'));
+
+            if (visible) {
+                visible.checked = true;
+            }
+        }
+
+        updatePayment();
+    };
+
+    const openMap = () => {
+        if (!mapSettings) {
+            return;
+        }
+
+        void openPickupMap(mapSettings, (point) => {
+            pointInput.value = point.code;
+            void fetchQuote(quoteUrl());
+        });
+    };
+
+    form.addEventListener('click', (event) => {
+        if (event.target.closest('[data-pickup-point-open]')) {
+            openMap();
+        }
+    });
+
     // Promo code: apply and remove in place.
     aside.addEventListener('submit', (event) => {
         const promoForm = event.target.closest('[data-promo-form]');
@@ -131,6 +194,7 @@ export function init(root) {
 
         const body = new FormData(promoForm);
         body.set('delivery', selectedDelivery());
+        body.set('pickup_point', isPickup() ? pointInput.value : '');
 
         const promoInput = promoForm.querySelector('[name="promo"]');
 
@@ -155,15 +219,30 @@ export function init(root) {
     // Delivery method: the price and free-delivery hint depend on it.
     form.addEventListener('change', (event) => {
         if (event.target.matches('[data-delivery-method]')) {
-            const url = new URL(root.dataset.summaryUrl);
-            url.searchParams.set('delivery', event.target.value);
-            void fetchQuote(url);
+            syncDeliveryFields();
+            void fetchQuote(quoteUrl());
+
+            if (isPickup() && !pointInput.value) {
+                openMap();
+            }
         }
     });
 
     // Placing the order: one press only, with progress on the button.
     form.addEventListener('submit', (event) => {
         if (event.defaultPrevented) {
+            return;
+        }
+
+        // CDEK without a pickup point: pick one first.
+        if (isPickup() && !pointInput.value) {
+            event.preventDefault();
+            form.querySelector('[data-delivery]').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+            });
+            openMap();
+
             return;
         }
 
@@ -194,6 +273,7 @@ export function init(root) {
  * Paying online: the button says where it leads, with a note under it.
  *
  * @param {HTMLFormElement} form
+ * @returns {() => void} Call after the payment choice changes in code.
  */
 function initPaymentChoice(form) {
     const label = form.querySelector('[data-submit-label]');
@@ -218,6 +298,8 @@ function initPaymentChoice(form) {
     });
 
     update();
+
+    return update;
 }
 
 /**

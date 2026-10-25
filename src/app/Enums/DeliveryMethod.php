@@ -7,7 +7,7 @@ enum DeliveryMethod: string
     /** Our courier, Ekaterinburg only. Price and free threshold are set in the admin. */
     case Courier = 'courier';
 
-    /** CDEK across Russia. Not available yet. */
+    /** CDEK to a pickup point or parcel locker across Russia; paid by card online. */
     case Cdek = 'cdek';
 
     /**

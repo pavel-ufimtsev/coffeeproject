@@ -68,10 +68,10 @@ class PromoCode extends Model
     {
         return match (true) {
             ! $this->is_active,
-            $this->starts_at?->isFuture() === true => __('This promo code is not valid.'),
-            $this->ends_at?->isPast() === true => __('This promo code has expired.'),
-            $this->max_uses !== null && $this->used_count >= $this->max_uses => __('This promo code has been used up.'),
-            $this->min_subtotal !== null && $subtotal < (float) $this->min_subtotal => __('This promo code works on orders from :amount.', ['amount' => Money::rub($this->min_subtotal)]),
+            $this->starts_at?->isFuture() === true => (string) __('This promo code is not valid.'),
+            $this->ends_at?->isPast() === true => (string) __('This promo code has expired.'),
+            $this->max_uses !== null && $this->used_count >= $this->max_uses => (string) __('This promo code has been used up.'),
+            $this->min_subtotal !== null && $subtotal < (float) $this->min_subtotal => (string) __('This promo code works on orders from :amount.', ['amount' => Money::rub($this->min_subtotal)]),
             default => null,
         };
     }

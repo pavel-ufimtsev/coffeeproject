@@ -59,10 +59,10 @@
                 <dd>{{ $order->customerName() }}<br>{{ $order->formattedPhone() }}</dd>
             </div>
             <div>
-                <dt>{{ __('Delivery address') }}</dt>
+                <dt>{{ $order->pickup_point_code ? __('Pickup point') : __('Delivery address') }}</dt>
                 <dd>
-                    {{ $order->addressLine() }}
-                    @if ($order->accessLine())<br>{{ $order->accessLine() }}@endif
+                    {{ $order->destinationLine() }}
+                    @if (! $order->pickup_point_code && $order->accessLine())<br>{{ $order->accessLine() }}@endif
                 </dd>
             </div>
             <div>

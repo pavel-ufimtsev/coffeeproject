@@ -185,7 +185,7 @@ class CheckoutTest extends TestCase
         $this->fillCart();
 
         $this->post(route('checkout.store'), $this->details(['city' => 'Москва']))
-            ->assertSessionHasErrors(['city' => 'Курьер доставляет только в городе Екатеринбург. Доставка по России через СДЭК появится совсем скоро.']);
+            ->assertSessionHasErrors(['city' => 'Курьер доставляет только в городе Екатеринбург.']);
 
         $this->assertSame(0, Order::count());
     }

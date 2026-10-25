@@ -7,6 +7,7 @@ use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
+use App\Http\Controllers\Shop\CdekWidgetController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\CookieConsentController;
 use App\Http\Controllers\Shop\HomeController;
@@ -43,6 +44,9 @@ Route::prefix('checkout')->name('checkout.')->controller(CheckoutController::cla
     Route::get('/', 'show')->name('show');
     Route::post('/', 'store')->middleware('throttle:10,1')->name('store');
     Route::get('summary', 'summary')->name('summary');
+    // The CDEK pickup point map asks for points and prices here.
+    Route::match(['get', 'post'], 'cdek', CdekWidgetController::class)->middleware('throttle:120,1')->name('cdek');
+    Route::get('geocode', [CdekWidgetController::class, 'geocode'])->middleware('throttle:60,1')->name('geocode');
     Route::post('promo', 'applyPromo')->middleware('throttle:20,1')->name('promo.apply');
     Route::delete('promo', 'removePromo')->name('promo.remove');
     Route::get('login', 'login')->name('login');

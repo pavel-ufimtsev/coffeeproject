@@ -71,4 +71,23 @@ return [
         'receipt_payment_method' => env('TBANK_RECEIPT_PAYMENT_METHOD', 'full_payment'),
     ],
 
+    'cdek' => [
+        // The site only reads pickup points and prices, so the live API is safe everywhere.
+        'url' => env('CDEK_API_URL', 'https://api.cdek.ru/v2'),
+        // CDEK account → Интеграция: account (идентификатор) and secure password.
+        'account' => env('CDEK_ACCOUNT'),
+        'password' => env('CDEK_PASSWORD'),
+        // Yandex "JavaScript API" key that draws the pickup point map. It is public: its HTTP Referer
+        // restriction must list the site's domains (JS API 3.0 refuses keys without one).
+        'yandex_maps_key' => env('CDEK_YANDEX_MAPS_KEY'),
+        // Yandex "API Геокодера" key, a separate product since 2025. The map's address lookups go
+        // through our server (checkout.geocode), so this key never reaches the browser.
+        'yandex_geocoder_key' => env('CDEK_YANDEX_GEOCODER_KEY'),
+        // Which pickup point map the checkout shows: "widget" is CDEK's own widget (v4, Yandex JS API 3.0);
+        // "yandex21" is our simpler map on Yandex JS API 2.1, for map keys that JS API 3.0 refuses.
+        'map' => env('CDEK_MAP', 'widget') === 'yandex21' ? 'yandex21' : 'widget',
+        // CDEK city code parcels leave from (Ekaterinburg).
+        'from_city_code' => (int) env('CDEK_FROM_CITY_CODE', 250),
+    ],
+
 ];

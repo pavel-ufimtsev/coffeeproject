@@ -6,6 +6,7 @@ use App\Enums\DeliveryMethod;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Models\Concerns\HasDeliveryAddress;
+use App\Services\Checkout\CdekDelivery;
 use App\Support\Phone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,13 +32,18 @@ use Illuminate\Support\Carbon;
  * @property string $delivery_price
  * @property string $city
  * @property string $street
- * @property string $house
+ * @property string|null $house
  * @property string|null $apartment
  * @property string|null $entrance
  * @property string|null $floor
  * @property string|null $intercom
  * @property string|null $courier_note
+ * @property string|null $pickup_point_code
+ * @property string|null $pickup_point_name
+ * @property int|null $delivery_tariff
+ * @property string|null $delivery_days
  * @property PaymentMethod $payment_method
+ * @property-read string|null $item_count sum of item quantities, when loaded with withSum()
  * @property bool $is_paid
  * @property string|null $payment_id
  * @property string|null $payment_status
@@ -75,6 +81,7 @@ class Order extends Model
             'status' => OrderStatus::class,
             'delivery_method' => DeliveryMethod::class,
             'payment_method' => PaymentMethod::class,
+            'delivery_tariff' => 'integer',
             'is_paid' => 'boolean',
             'paid_at' => 'datetime',
             'confirmed_at' => 'datetime',
@@ -154,5 +161,23 @@ class Order extends Model
     public function getRouteKeyName(): string
     {
         return 'number';
+    }
+
+    /**
+     * A CDEK order's destination: "Пункт выдачи СДЭК MSK123, Москва, ул. Тверская, 1".
+     */
+    public function pickupPointLine(): string
+    {
+        $kind = $this->delivery_tariff === CdekDelivery::TARIFF_LOCKER ? __('CDEK parcel locker') : __('CDEK pickup point');
+
+        return collect(["{$kind} {$this->pickup_point_code}", $this->city, $this->street])->filter()->implode(', ');
+    }
+
+    /**
+     * Where the order goes: the pickup point for CDEK, else the street address.
+     */
+    public function destinationLine(): string
+    {
+        return $this->pickup_point_code ? $this->pickupPointLine() : $this->addressLine();
     }
 }

@@ -38,6 +38,7 @@ Route::post('orders/{order}/retailcrm', [OrderController::class, 'pushToRetailCr
 Route::resource('promo-codes', PromoCodeController::class)->except('show');
 Route::get('delivery', [DeliveryController::class, 'edit'])->name('delivery.edit');
 Route::put('delivery', [DeliveryController::class, 'update'])->name('delivery.update');
+Route::put('delivery/cdek', [DeliveryController::class, 'updateCdek'])->name('delivery.cdek.update');
 
 // Catalog. Reorder routes come before the resources so "order" is not taken for an ID.
 Route::resource('products', ProductController::class)->except('show');

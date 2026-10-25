@@ -30,16 +30,24 @@
                         <dd>{{ $order->customerName() }}<br>{{ $order->formattedPhone() }}<br>{{ $order->email }}</dd>
                     </div>
                     <div>
-                        <dt>{{ __('Delivery address') }}</dt>
-                        <dd>
-                            {{ $order->addressLine() }}
-                            @if ($order->accessLine())<br>{{ $order->accessLine() }}@endif
-                            @if ($order->courier_note)<br><span class="muted">{{ $order->courier_note }}</span>@endif
-                        </dd>
+                        @if ($order->pickup_point_code)
+                            <dt>{{ __('Pickup point') }}</dt>
+                            <dd>
+                                {{ $order->pickupPointLine() }}
+                                <br><span class="muted">{{ __('We will send the tracking number once the parcel is with CDEK.') }}</span>
+                            </dd>
+                        @else
+                            <dt>{{ __('Delivery address') }}</dt>
+                            <dd>
+                                {{ $order->addressLine() }}
+                                @if ($order->accessLine())<br>{{ $order->accessLine() }}@endif
+                                @if ($order->courier_note)<br><span class="muted">{{ $order->courier_note }}</span>@endif
+                            </dd>
+                        @endif
                     </div>
                     <div>
                         <dt>{{ __('Delivery method') }}</dt>
-                        <dd>{{ __('Courier in Ekaterinburg') }} · {{ (float) $order->delivery_price > 0 ? Money::rub($order->delivery_price) : __('Free') }}</dd>
+                        <dd>{{ $order->pickup_point_code ? __('CDEK') : __('Courier in Ekaterinburg') }}@if ($order->delivery_days) · {{ $order->delivery_days }}@endif · {{ (float) $order->delivery_price > 0 ? Money::rub($order->delivery_price) : __('Free') }}</dd>
                     </div>
                     <div>
                         <dt>{{ __('Payment') }}</dt>

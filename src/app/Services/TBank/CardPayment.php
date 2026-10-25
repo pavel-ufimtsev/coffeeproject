@@ -141,27 +141,28 @@ class CardPayment
             'total' => $this->kopecks($line->total),
         ])->values()->all();
 
-        $goods = array_sum(array_column($lines, 'total'));
+        // Line totals after the discount, spread over the lines by their share of the goods.
+        $totals = array_column($lines, 'total');
+        $goods = array_sum($totals);
         $discount = $this->kopecks($order->discount);
         $left = $discount;
 
-        foreach ($lines as $i => $line) {
-            $share = $goods > 0 ? intdiv($discount * $line['total'], $goods) : 0;
-            $lines[$i]['total'] -= $share;
+        foreach ($totals as $i => $total) {
+            $share = $goods > 0 ? intdiv($discount * $total, $goods) : 0;
+            $totals[$i] -= $share;
             $left -= $share;
         }
 
         // Kopecks lost to rounding come off the most expensive line.
-        if ($left > 0 && $lines !== []) {
-            $biggest = array_keys(array_column($lines, 'total'), max(array_column($lines, 'total')))[0];
-            $lines[$biggest]['total'] -= $left;
+        if ($left > 0 && $totals !== []) {
+            $totals[array_keys($totals, max($totals))[0]] -= $left;
         }
 
         $items = [];
 
-        foreach ($lines as $line) {
-            $unit = intdiv($line['total'], $line['quantity']);
-            $rest = $line['total'] - $unit * $line['quantity'];
+        foreach ($lines as $i => $line) {
+            $unit = intdiv($totals[$i], $line['quantity']);
+            $rest = $totals[$i] - $unit * $line['quantity'];
 
             if ($rest === 0) {
                 $items[] = $item($line['name'], $unit, $line['quantity'], 'commodity');

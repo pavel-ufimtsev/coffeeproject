@@ -35,11 +35,17 @@ class CheckoutController extends Controller
 
         $user = $request->user();
         $addresses = $user?->addresses()->get() ?? collect();
-        $selected = old('address_id', $request->query('address', $addresses->firstWhere('is_default', true)?->id ?? 'new'));
+        $selected = old('address_id', $request->query('address', $addresses->firstWhere('is_default', true)->id ?? 'new'));
+
+        // Back after a validation error: keep the delivery and pickup point picked.
+        $oldMethod = old('delivery_method');
+        $oldPoint = old('pickup_point');
+        $method = is_string($oldMethod) ? DeliveryMethod::tryFrom($oldMethod) : null;
+        $method = in_array($method, $checkout->deliveryMethods(), true) ? $method : ($checkout->deliveryMethods()[0] ?? DeliveryMethod::Courier);
 
         return view('shop.checkout.show', [
             'checkout' => $checkout,
-            'quote' => $checkout->quote(),
+            'quote' => $checkout->quote($method, pickupPoint: is_string($oldPoint) ? $oldPoint : null),
             // New on every page load: placing an order consumes it, so a double submit places one order.
             'checkoutToken' => Str::random(40),
             'contact' => $this->contactDefaults($user),
@@ -54,7 +60,7 @@ class CheckoutController extends Controller
      */
     public function summary(Request $request, Checkout $checkout): JsonResponse
     {
-        return $this->summaryResponse($checkout, $this->deliveryMethod($request));
+        return $this->summaryResponse($checkout, $request);
     }
 
     public function applyPromo(Request $request, Checkout $checkout): JsonResponse|RedirectResponse
@@ -67,14 +73,14 @@ class CheckoutController extends Controller
             return $error ? back()->withErrors(['promo' => $error], 'promo')->withInput() : back();
         }
 
-        return $this->summaryResponse($checkout, $this->deliveryMethod($request), $error);
+        return $this->summaryResponse($checkout, $request, $error);
     }
 
     public function removePromo(Request $request, Checkout $checkout): JsonResponse|RedirectResponse
     {
         $checkout->removePromo();
 
-        return $request->wantsJson() ? $this->summaryResponse($checkout, $this->deliveryMethod($request)) : back();
+        return $request->wantsJson() ? $this->summaryResponse($checkout, $request) : back();
     }
 
     public function store(CheckoutRequest $request, Checkout $checkout, PlaceOrder $placeOrder, CardPayment $cardPayment): SymfonyResponse
@@ -111,13 +117,14 @@ class CheckoutController extends Controller
         return to_route('login');
     }
 
-    private function summaryResponse(Checkout $checkout, DeliveryMethod $method, ?string $promoError = null): JsonResponse
+    private function summaryResponse(Checkout $checkout, Request $request, ?string $promoError = null): JsonResponse
     {
-        $quote = $checkout->quote($method);
+        $quote = $checkout->quote($this->deliveryMethod($request), pickupPoint: $request->string('pickup_point')->toString() ?: null);
 
         return response()->json([
             'total' => $quote->total(),
             'totalLabel' => Money::rub($quote->total()),
+            'deliveryReady' => $quote->deliveryReady(),
             'summary' => view('shop.checkout.summary', ['checkout' => $checkout, 'quote' => $quote, 'promoError' => $promoError])->render(),
             'delivery' => view('shop.checkout.delivery-options', ['checkout' => $checkout, 'quote' => $quote])->render(),
         ]);

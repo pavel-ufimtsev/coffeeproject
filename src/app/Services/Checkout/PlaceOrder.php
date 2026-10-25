@@ -18,9 +18,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Turns the cart into an order: prices worked out again on the server, the
- * promo code locked and counted, the account holder's address saved, then
- * the cart emptied. Cash orders are confirmed right away (email, retailCRM);
+ * Turns the cart into an order: prices worked out again on the server (for
+ * CDEK, asked from CDEK again), the promo code locked and counted, the
+ * account holder's address saved, then the cart emptied. Cash orders are confirmed right away (email, retailCRM);
  * card orders wait for the bank, see CardPayment.
  */
 class PlaceOrder
@@ -61,7 +61,11 @@ class PlaceOrder
     private function create(CheckoutRequest $request, string $token): Order
     {
         $method = DeliveryMethod::from($request->input('delivery_method'));
-        $quote = $this->checkout->quote($method);
+        $quote = $this->checkout->quote($method, pickupPoint: $request->isPickup() ? $request->string('pickup_point')->toString() : null);
+
+        if (! $quote->deliveryReady()) {
+            throw ValidationException::withMessages(['pickup_point' => $quote->deliveryProblem]);
+        }
 
         // Lock the code so two orders cannot both take its last use.
         $promo = $quote->promo ? PromoCode::lockForUpdate()->find($quote->promo->id) : null;
@@ -89,7 +93,7 @@ class PlaceOrder
             'email' => $request->input('email'),
             'delivery_method' => $method,
             'delivery_price' => $quote->deliveryPrice,
-            ...$request->only(Order::ADDRESS_FIELDS),
+            ...($quote->pickupPoint ? $this->pickupPointColumns($quote) : $request->only(Order::ADDRESS_FIELDS)),
             'payment_method' => PaymentMethod::from($request->input('payment_method')),
             'promo_code_id' => $promo?->id,
             'promo_code' => $promo?->code,
@@ -118,11 +122,28 @@ class PlaceOrder
 
         $promo?->increment('used_count');
 
-        if ($user) {
+        if ($user && ! $request->isPickup()) {
             $this->saveAddress($user, $request);
         }
 
         return $order;
+    }
+
+    /**
+     * Where a CDEK order goes: the point's city and address stand in for the street address.
+     *
+     * @return array<string, mixed>
+     */
+    private function pickupPointColumns(Quote $quote): array
+    {
+        return [
+            'city' => $quote->pickupPoint->city,
+            'street' => $quote->pickupPoint->address,
+            'pickup_point_code' => $quote->pickupPoint->code,
+            'pickup_point_name' => $quote->pickupPoint->name,
+            'delivery_tariff' => $quote->rate?->tariff,
+            'delivery_days' => $quote->rate?->days(),
+        ];
     }
 
     /**
@@ -133,7 +154,7 @@ class PlaceOrder
         $fields = $request->only(Address::ADDRESS_FIELDS);
 
         if (! $request->wantsNewAddress()) {
-            $user->addresses()->findOrFail($request->input('address_id'))->update($fields);
+            $user->addresses()->findOrFail($request->integer('address_id'))->update($fields);
 
             return;
         }

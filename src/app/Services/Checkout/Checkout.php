@@ -6,6 +6,7 @@ use App\Enums\DeliveryMethod;
 use App\Enums\PaymentMethod;
 use App\Models\PromoCode;
 use App\Services\Cart\Cart;
+use App\Services\Cdek\CdekException;
 use Illuminate\Contracts\Session\Session;
 
 /**
@@ -20,6 +21,7 @@ class Checkout
     public function __construct(
         private readonly Cart $cart,
         private readonly CourierRates $courier,
+        private readonly CdekDelivery $cdek,
         private readonly Session $session,
     ) {}
 
@@ -33,22 +35,37 @@ class Checkout
         return $this->courier;
     }
 
+    public function cdek(): CdekDelivery
+    {
+        return $this->cdek;
+    }
+
     /**
-     * Delivery methods customers can pick now. CDEK is shown as coming soon.
+     * Delivery methods customers can pick now. CDEK orders are paid by card
+     * online, so CDEK needs T-Bank switched on as well.
      *
      * @return list<DeliveryMethod>
      */
     public function deliveryMethods(): array
     {
-        return $this->courier->enabled() ? [DeliveryMethod::Courier] : [];
+        return array_values(array_filter([
+            $this->courier->enabled() ? DeliveryMethod::Courier : null,
+            $this->cdek->enabled() && PaymentMethod::TBank->isEnabled() ? DeliveryMethod::Cdek : null,
+        ]));
     }
 
     /**
+     * Payment methods for the delivery picked: CDEK orders are paid online only.
+     *
      * @return list<PaymentMethod>
      */
-    public function paymentMethods(): array
+    public function paymentMethods(?DeliveryMethod $delivery = null): array
     {
-        return PaymentMethod::enabled();
+        $methods = PaymentMethod::enabled();
+
+        return $delivery === DeliveryMethod::Cdek
+            ? array_values(array_filter($methods, fn (PaymentMethod $method) => $method->isOnline()))
+            : $methods;
     }
 
     /**
@@ -103,25 +120,62 @@ class Checkout
 
         $promo = PromoCode::findByCode($this->promoCode());
 
-        return $promo === null ? __('There is no such promo code.') : $promo->problemFor($this->cart->subtotal());
+        return $promo === null ? (string) __('There is no such promo code.') : $promo->problemFor($this->cart->subtotal());
     }
 
-    public function quote(DeliveryMethod $method = DeliveryMethod::Courier, ?PromoCode $promo = null): Quote
+    /**
+     * @param  string|null  $pickupPoint  The CDEK point code picked on the map
+     */
+    public function quote(DeliveryMethod $method = DeliveryMethod::Courier, ?PromoCode $promo = null, ?string $pickupPoint = null): Quote
     {
         $subtotal = $this->cart->subtotal();
         $promo ??= $this->usablePromo($subtotal);
         $discount = $promo?->discountFor($subtotal) ?? 0.0;
         $goods = $subtotal - $discount;
 
-        return new Quote(
-            lines: $this->cart->lines(),
-            subtotal: $subtotal,
-            promo: $promo,
-            discount: $discount,
-            deliveryMethod: $method,
-            deliveryPrice: $this->courier->cost($goods),
-            remainingForFreeDelivery: $this->courier->remainingForFree($goods),
-        );
+        // The goods part is the same for every method; $delivery fills in the rest.
+        $quote = fn (array $delivery) => new Quote(...[
+            'lines' => $this->cart->lines(),
+            'subtotal' => $subtotal,
+            'promo' => $promo,
+            'discount' => $discount,
+            'deliveryMethod' => $method,
+            ...$delivery,
+        ]);
+
+        if ($method === DeliveryMethod::Courier) {
+            return $quote([
+                'deliveryPrice' => $this->courier->cost($goods),
+                'remainingForFreeDelivery' => $this->courier->remainingForFree($goods),
+                'freeDeliveryFrom' => $this->courier->price() > 0 ? $this->courier->freeFrom() : null,
+            ]);
+        }
+
+        $cdek = [
+            'deliveryPrice' => 0.0,
+            'remainingForFreeDelivery' => $this->cdek->remainingForFree($goods),
+            'freeDeliveryFrom' => $this->cdek->freeFrom(),
+        ];
+
+        if (blank($pickupPoint)) {
+            return $quote([...$cdek, 'deliveryProblem' => __('Choose a pickup point on the map.')]);
+        }
+
+        try {
+            $point = $this->cdek->pickupPoint($pickupPoint);
+
+            if ($point === null) {
+                return $quote([...$cdek, 'deliveryProblem' => __('This pickup point is no longer available. Please choose another one.')]);
+            }
+
+            $rate = $this->cdek->rate($point, $this->cart);
+        } catch (CdekException $e) {
+            report($e);
+
+            return $quote([...$cdek, 'deliveryProblem' => __('We could not get the CDEK price right now. Please try again in a minute.')]);
+        }
+
+        return $quote([...$cdek, 'deliveryPrice' => $this->cdek->cost($goods, $rate), 'pickupPoint' => $point, 'rate' => $rate]);
     }
 
     /**

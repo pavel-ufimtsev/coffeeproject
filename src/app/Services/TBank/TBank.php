@@ -109,7 +109,7 @@ class TBank
         $params['Token'] = $this->token($params);
 
         try {
-            $response = Http::acceptJson()->asJson()->timeout(20)->post(rtrim($this->url, '/')."/{$method}", $params);
+            $response = Http::acceptJson()->asJson()->timeout(20)->withOptions(['verify' => CaBundle::path()])->post(rtrim($this->url, '/')."/{$method}", $params);
         } catch (ConnectionException $e) {
             throw new TBankException("Could not reach T-Bank: {$e->getMessage()}", previous: $e);
         }
