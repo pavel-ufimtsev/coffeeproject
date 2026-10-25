@@ -1,0 +1,3 @@
+# Install for the coffeeproject user:  sudo crontab -u coffeeproject deploy/crontab
+# Runs Laravel's scheduler every minute.
+* * * * * cd /var/www/coffeeproject/src && /usr/bin/php artisan schedule:run >> /dev/null 2>&1

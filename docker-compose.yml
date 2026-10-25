@@ -1,0 +1,166 @@
+name: coffeeproject
+
+x-php-common: &php-common
+  image: coffeeproject/php:dev
+  volumes:
+    - ./src:/var/www/html
+  networks:
+    - coffeeproject
+  depends_on:
+    mysql:
+      condition: service_healthy
+
+services:
+  app:
+    <<: *php-common
+    container_name: coffeeproject-app
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: dev
+      args:
+        UID: ${HOST_UID:-1000}
+        GID: ${HOST_GID:-1000}
+      labels:
+        com.coffeeproject.project: CoffeeProject
+        com.coffeeproject.service: app
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: app
+    restart: unless-stopped
+
+  queue:
+    <<: *php-common
+    container_name: coffeeproject-queue
+    pull_policy: never
+    command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=90"]
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: queue
+    restart: unless-stopped
+
+  scheduler:
+    <<: *php-common
+    container_name: coffeeproject-scheduler
+    pull_policy: never
+    command: ["php", "artisan", "schedule:work"]
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: scheduler
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:stable
+    container_name: coffeeproject-nginx
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./src:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - coffeeproject
+    depends_on:
+      - app
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: nginx
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    container_name: coffeeproject-mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-coffeeproject}
+      MYSQL_USER: ${DB_USERNAME:-coffeeproject}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    ports:
+      - "${MYSQL_PORT:-3308}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/coffeeproject.cnf:ro
+    networks:
+      - coffeeproject
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: mysql
+    restart: unless-stopped
+
+  # Node LTS layered on the PHP image: the Wayfinder Vite plugin calls artisan.
+  node:
+    image: coffeeproject/node:dev
+    container_name: coffeeproject-node
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: node
+      args:
+        UID: ${HOST_UID:-1000}
+        GID: ${HOST_GID:-1000}
+      labels:
+        com.coffeeproject.project: CoffeeProject
+        com.coffeeproject.service: node
+    # node_modules lives in a volume: the host copy has macOS native binaries.
+    # The first start installs (and writes package-lock.json if it is missing).
+    command: ["sh", "-c", "[ -f node_modules/.package-lock.json ] || { [ -f package-lock.json ] && npm ci || npm install; }; exec npm run dev"]
+    ports:
+      - "${VITE_PORT:-5175}:${VITE_PORT:-5175}"
+    environment:
+      # Vite listens on the same port inside and outside the container, so the
+      # HMR URL it writes to public/hot works from the browser.
+      VITE_PORT: ${VITE_PORT:-5175}
+    volumes:
+      - ./src:/var/www/html
+      - node_modules:/var/www/html/node_modules
+    networks:
+      - coffeeproject
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: node
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: coffeeproject-mailpit
+    ports:
+      - "${MAILPIT_UI_PORT:-8027}:8025"
+    volumes:
+      - mailpit_data:/data
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    networks:
+      - coffeeproject
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: mailpit
+    restart: unless-stopped
+
+networks:
+  coffeeproject:
+    name: coffeeproject_network
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: network
+
+volumes:
+  mysql_data:
+    name: coffeeproject_mysql_data
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: mysql
+  node_modules:
+    name: coffeeproject_node_modules
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: node
+  mailpit_data:
+    name: coffeeproject_mailpit_data
+    labels:
+      com.coffeeproject.project: CoffeeProject
+      com.coffeeproject.service: mailpit

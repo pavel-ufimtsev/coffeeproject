@@ -1,0 +1,3 @@
+# /etc/sudoers.d/coffeeproject  (install with: sudo visudo -cf deploy/sudoers && sudo install -m 0440 deploy/sudoers /etc/sudoers.d/coffeeproject)
+# Lets deploy.sh reload PHP-FPM without a password, and nothing else.
+coffeeproject ALL=(root) NOPASSWD: /usr/bin/systemctl reload php8.5-fpm
