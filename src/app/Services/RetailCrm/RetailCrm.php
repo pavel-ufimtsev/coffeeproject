@@ -110,6 +110,40 @@ class RetailCrm
     }
 
     /**
+     * Find catalog products by name or article, or by ID when the term is a
+     * number. At most 20 results.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function searchProducts(string $term): array
+    {
+        $filter = ctype_digit($term) ? ['ids' => [(int) $term]] : ['name' => $term];
+
+        return array_values($this->call(fn (ApiVersion5 $api) => $api->storeProducts($filter, 1, 20))['products'] ?? []);
+    }
+
+    /**
+     * Get every active catalog product with its offers, keyed by retailCRM product ID.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function activeProducts(): array
+    {
+        $products = [];
+        $page = 1;
+
+        do {
+            $body = $this->call(fn (ApiVersion5 $api) => $api->storeProducts(['active' => 1], $page, 100));
+
+            foreach ($body['products'] ?? [] as $product) {
+                $products[(int) $product['id']] = $product;
+            }
+        } while ($page++ < ($body['pagination']['totalPageCount'] ?? 1));
+
+        return $products;
+    }
+
+    /**
      * Get the low-level SDK client for calls not wrapped here yet.
      */
     public function api(): ApiVersion5

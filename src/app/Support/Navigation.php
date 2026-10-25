@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Cache;
 
 class Navigation
 {
+    public const CACHE_KEY = 'navigation.root-ids';
+
     /**
      * Root categories that have something on sale, for the site header and
      * footer. Which ones qualify is cached briefly (as IDs: the cache only
@@ -18,7 +20,7 @@ class Navigation
      */
     public static function roots(): Collection
     {
-        $ids = Cache::remember('navigation.root-ids', now()->addMinutes(5), fn () => Category::roots()
+        $ids = Cache::remember(self::CACHE_KEY, now()->addMinutes(5), fn () => Category::roots()
             ->where('is_active', true)
             ->get()
             ->filter(fn (Category $root) => Product::active()->whereIn('category_id', $root->selfAndDescendantIds())->exists())

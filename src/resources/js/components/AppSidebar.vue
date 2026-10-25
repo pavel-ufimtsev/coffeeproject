@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid, Store, Users } from '@lucide/vue';
+import {
+    CornerUpRight,
+    Flame,
+    FolderTree,
+    LayoutGrid,
+    Layers,
+    Package,
+    RefreshCw,
+    SlidersHorizontal,
+    Store,
+    Users,
+} from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -16,6 +27,13 @@ import {
 } from '@/components/ui/sidebar';
 import { home } from '@/routes';
 import { dashboard } from '@/routes/admin';
+import { index as categoriesIndex } from '@/routes/admin/categories';
+import { index as collectionsIndex } from '@/routes/admin/collections';
+import { index as filtersIndex } from '@/routes/admin/filter-groups';
+import { index as productsIndex } from '@/routes/admin/products';
+import { index as redirectsIndex } from '@/routes/admin/redirects';
+import { index as retailcrmIndex } from '@/routes/admin/retailcrm';
+import { index as roastersIndex } from '@/routes/admin/roasters';
 import { index as usersIndex } from '@/routes/admin/users';
 import type { NavItem } from '@/types';
 
@@ -25,6 +43,13 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    { title: 'Products', href: productsIndex(), icon: Package },
+    { title: 'Categories', href: categoriesIndex(), icon: FolderTree },
+    { title: 'Filters', href: filtersIndex(), icon: SlidersHorizontal },
+    { title: 'Collections', href: collectionsIndex(), icon: Layers },
+    { title: 'Roasters', href: roastersIndex(), icon: Flame },
+    { title: 'retailCRM', href: retailcrmIndex(), icon: RefreshCw },
+    { title: 'Redirects', href: redirectsIndex(), icon: CornerUpRight },
     {
         title: 'Users',
         href: usersIndex(),

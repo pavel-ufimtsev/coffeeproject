@@ -36,40 +36,9 @@ class CatalogSync
             $remote = $this->crm->products(array_values(array_map('intval', $products->pluck('retailcrm_product_id')->all())));
 
             foreach ($products as $product) {
-                $remoteProduct = $remote[$product->retailcrm_product_id] ?? null;
-
-                $isOnSale = $product->status === ProductStatus::Active;
-
-                if ($remoteProduct === null && $isOnSale) {
-                    $issues[] = $this->issue($product, null, 'Товар не найден в retailCRM.');
-                } elseif ($remoteProduct !== null && ! ($remoteProduct['active'] ?? false) && $isOnSale) {
-                    $issues[] = $this->issue($product, null, 'Товар продаётся на сайте, но выключен в retailCRM.');
-                }
-
-                $product->update([
-                    'retailcrm_name' => $remoteProduct['name'] ?? $product->retailcrm_name,
-                    'retailcrm_active' => $remoteProduct ? (bool) ($remoteProduct['active'] ?? false) : null,
-                ]);
-
-                /** @var list<array<string, mixed>> $offerRows */
-                $offerRows = $remoteProduct['offers'] ?? [];
-                $offers = collect($offerRows)->keyBy('id');
-
-                foreach ($product->variants as $variant) {
-                    if ($variant->retailcrm_offer_id === null) {
-                        continue;
-                    }
-
-                    $change = $this->syncVariant($variant, $offers->get($variant->retailcrm_offer_id));
-
-                    if ($change !== null) {
-                        $changes[] = ['product' => $product->slug, 'variant' => $variant->label, ...$change];
-                    }
-
-                    if ($variant->sync_status !== ProductVariant::SYNC_OK && $variant->is_active && $isOnSale) {
-                        $issues[] = $this->issue($product, $variant, $this->describe($variant->sync_status));
-                    }
-                }
+                [$productChanges, $productIssues] = $this->apply($product, $remote[$product->retailcrm_product_id] ?? null);
+                $changes = [...$changes, ...$productChanges];
+                $issues = [...$issues, ...$productIssues];
             }
 
             $run->fill(['products_checked' => $products->count(), 'variants_changed' => count($changes)]);
@@ -80,6 +49,69 @@ class CatalogSync
         $run->fill(['finished_at' => now(), 'changes' => $changes, 'issues' => $issues])->save();
 
         return $run;
+    }
+
+    /**
+     * Sync one product right away, for example after linking it in the admin.
+     * Not recorded as a run.
+     *
+     * @return list<array<string, mixed>> the problems found
+     */
+    public function syncProduct(Product $product): array
+    {
+        if ($product->retailcrm_product_id === null) {
+            return [];
+        }
+
+        $remote = $this->crm->products([$product->retailcrm_product_id]);
+
+        return $this->apply($product->load('variants'), $remote[$product->retailcrm_product_id] ?? null)[1];
+    }
+
+    /**
+     * Update a product and its variants from the retailCRM product.
+     *
+     * @param  array<string, mixed>|null  $remoteProduct
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>} changes and problems
+     */
+    private function apply(Product $product, ?array $remoteProduct): array
+    {
+        $changes = [];
+        $issues = [];
+        $isOnSale = $product->status === ProductStatus::Active;
+
+        if ($remoteProduct === null && $isOnSale) {
+            $issues[] = $this->issue($product, null, 'Товар не найден в retailCRM.');
+        } elseif ($remoteProduct !== null && ! ($remoteProduct['active'] ?? false) && $isOnSale) {
+            $issues[] = $this->issue($product, null, 'Товар продаётся на сайте, но выключен в retailCRM.');
+        }
+
+        $product->update([
+            'retailcrm_name' => $remoteProduct['name'] ?? $product->retailcrm_name,
+            'retailcrm_active' => $remoteProduct ? (bool) ($remoteProduct['active'] ?? false) : null,
+        ]);
+
+        /** @var list<array<string, mixed>> $offerRows */
+        $offerRows = $remoteProduct['offers'] ?? [];
+        $offers = collect($offerRows)->keyBy('id');
+
+        foreach ($product->variants as $variant) {
+            if ($variant->retailcrm_offer_id === null) {
+                continue;
+            }
+
+            $change = $this->syncVariant($variant, $offers->get($variant->retailcrm_offer_id));
+
+            if ($change !== null) {
+                $changes[] = ['product' => $product->slug, 'variant' => $variant->label, ...$change];
+            }
+
+            if ($variant->sync_status !== ProductVariant::SYNC_OK && $variant->is_active && $isOnSale) {
+                $issues[] = $this->issue($product, $variant, $this->describe($variant->sync_status));
+            }
+        }
+
+        return [$changes, $issues];
     }
 
     /**

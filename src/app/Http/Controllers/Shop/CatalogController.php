@@ -57,7 +57,12 @@ class CatalogController extends Controller
             return $this->listing($request, $rootCategory, $rootCategory, $collection);
         }
 
-        $product = Product::visible()->where('slug', $slug)->with('category.parent')->first();
+        // Admins can preview drafts.
+        $product = Product::query()
+            ->unless($request->user()?->can('access-admin'), fn ($query) => $query->visible())
+            ->where('slug', $slug)
+            ->with('category.parent')
+            ->first();
         abort_if($product === null, 404);
 
         // A product opened under the wrong root moves to its real address.
@@ -144,6 +149,7 @@ class CatalogController extends Controller
             'product' => $product,
             'root' => $root,
             'isArchived' => $isArchived,
+            'isDraft' => $product->status === ProductStatus::Draft,
             'landingTags' => $product->filterValues->where('is_landing', true)->sortBy(fn (FilterValue $v) => [$v->group->sort, $v->sort])->values(),
             'shipsFrom' => $product->activeVariants->flatMap->locations->unique('id')->values(),
             'grinds' => $product->type->hasGrind() ? ProductType::grinds() : [],
@@ -155,7 +161,7 @@ class CatalogController extends Controller
                     : "{$product->name} | Coffee Project"),
                 'description' => $product->seo_description ?: Str::limit(str_replace("\n", ' ', $product->summary ?? $product->tagline ?? $product->name), 160),
                 'canonical' => url($product->path()),
-                'robots' => $isArchived ? 'noindex,follow' : 'index,follow',
+                'robots' => $product->status === ProductStatus::Active ? 'index,follow' : 'noindex,follow',
             ],
             'jsonLd' => array_filter([$this->productJsonLd($product), $this->breadcrumbJsonLd($breadcrumbs)]),
         ]);

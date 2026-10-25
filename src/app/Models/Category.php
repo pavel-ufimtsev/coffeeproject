@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Support\Navigation;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * A node in the catalog tree. Root categories (coffee, chaj, accessory) are
@@ -26,6 +28,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['parent_id', 'slug', 'name', 'h1', 'intro', 'seo_title', 'seo_description', 'sort', 'is_active'])]
 class Category extends Model
 {
+    /**
+     * Refresh the site navigation when categories change.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn () => Cache::forget(Navigation::CACHE_KEY));
+        static::deleted(fn () => Cache::forget(Navigation::CACHE_KEY));
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -134,6 +145,29 @@ class Category extends Model
     public function path(): string
     {
         return $this->isRoot() ? "/{$this->slug}" : "/{$this->root()->slug}/{$this->slug}";
+    }
+
+    /**
+     * Get every category in tree order, for pickers in the admin.
+     *
+     * @return list<array{id: int, name: string, label: string, root_id: int, depth: int, is_active: bool}>
+     */
+    public static function options(): array
+    {
+        $all = Category::orderBy('sort')->orderBy('name')->get()->groupBy(fn (Category $c) => $c->parent_id ?? 0);
+        $options = [];
+
+        $walk = function (int $parentId, int $rootId, string $prefix, int $depth) use (&$walk, &$options, $all): void {
+            foreach ($all->get($parentId, []) as $category) {
+                $root = $depth === 0 ? $category->id : $rootId;
+                $label = $prefix.$category->name;
+                $options[] = ['id' => $category->id, 'name' => $category->name, 'label' => $label, 'root_id' => $root, 'depth' => $depth, 'is_active' => $category->is_active];
+                $walk($category->id, $root, "{$label} › ", $depth + 1);
+            }
+        };
+        $walk(0, 0, '', 0);
+
+        return $options;
     }
 
     /**

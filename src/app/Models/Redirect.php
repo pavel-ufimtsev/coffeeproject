@@ -43,6 +43,30 @@ class Redirect extends Model
     }
 
     /**
+     * Record that a page moved: the old address redirects to the new one,
+     * redirects that led to the old address now lead straight to the new
+     * one, and nothing redirects away from the new address any more.
+     */
+    public static function moved(string $from, string $to): void
+    {
+        if ($from === $to) {
+            return;
+        }
+
+        static::where('to_path', $from)->get()->each->update(['to_path' => $to]);
+        static::where('from_path', $to)->get()->each->delete();
+        static::updateOrCreate(['from_path' => $from], ['to_path' => $to, 'status_code' => 301]);
+    }
+
+    /**
+     * Make an address usable for a new page by removing any redirect away from it.
+     */
+    public static function release(string $path): void
+    {
+        static::where('from_path', $path)->get()->each->delete();
+    }
+
+    /**
      * Normalise a request path the way redirects are stored: leading slash,
      * no trailing slash, decoded.
      */

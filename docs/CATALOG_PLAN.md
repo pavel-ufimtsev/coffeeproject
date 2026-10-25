@@ -99,7 +99,8 @@ Notes:
 ## Progress
 
 - **Phase 1: done** (2026-10-26). 98 products restored: 35 active (23 coffees, 5 drip packs and sets, 7 teas) and 63 archived teas and accessories. Guides are skipped until there is content for them. All products are linked to retailCRM; 659 redirects cover the old site's URLs. Commands: `make catalog-import`, `make crm-sync`.
-- **Phase 2:** next.
+- **Phase 2:** done (2026-10-26). Admin under /admin: products (list with "needs attention", edit with photos, sizes, filters, collections, SEO, retailCRM link picker, draft preview), categories, filters and landing pages, collections, roasters and locations, retailCRM sync page with unlinked products and an ignore list, redirects with hit counts. Changing a published address adds a 301 automatically.
+- **Phase 3:** next.
 
 ## Phases
 

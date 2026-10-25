@@ -9,6 +9,9 @@
     <div class="container product-page">
         <x-catalog.breadcrumbs :items="$breadcrumbs" />
 
+        @if ($isDraft)
+            <p class="notice notice--warning" role="status">{{ __('Draft preview: only admins can see this page.') }}</p>
+        @endif
         @if ($isArchived)
             <p class="notice notice--warning" role="status">{{ __('This product is no longer sold. Have a look at the alternatives below.') }}</p>
         @endif
