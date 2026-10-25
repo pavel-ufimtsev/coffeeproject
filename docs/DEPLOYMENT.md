@@ -187,6 +187,8 @@ npm ci && npm run build
 php artisan migrate --force
 php artisan db:seed --class=AdminUserSeeder --force
 php artisan storage:link
+php artisan catalog:import          # first deploy only: restores the catalog
+php artisan retailcrm:sync-catalog  # current prices; the scheduler repeats it every 30 minutes
 exit
 ```
 

@@ -89,6 +89,27 @@ class RetailCrm
     }
 
     /**
+     * Get catalog products with their offers, keyed by retailCRM product ID.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function products(array $ids): array
+    {
+        $products = [];
+
+        foreach (array_chunk(array_values(array_unique($ids)), 100) as $chunk) {
+            $body = $this->call(fn (ApiVersion5 $api) => $api->storeProducts(['ids' => $chunk], 1, 100));
+
+            foreach ($body['products'] ?? [] as $product) {
+                $products[(int) $product['id']] = $product;
+            }
+        }
+
+        return $products;
+    }
+
+    /**
      * Get the low-level SDK client for calls not wrapped here yet.
      */
     public function api(): ApiVersion5

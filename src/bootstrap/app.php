@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureTwoFactorIsEnabled;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LeaveInertiaForBladePages;
+use App\Http\Middleware\RedirectLegacyUrls;
 use App\Http\Middleware\SetLocale;
 use App\Http\Responses\LoginResponse;
 use Illuminate\Foundation\Application;
@@ -27,6 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+
+        // Global, so old URLs that match no route are redirected before routing 404s them.
+        $middleware->prepend(RedirectLegacyUrls::class);
 
         $middleware->web(append: [
             SetLocale::class,

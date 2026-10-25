@@ -3,7 +3,7 @@ DC   := docker compose
 EXEC := $(DC) exec app
 
 .DEFAULT_GOAL := help
-.PHONY: help init setup up down build restart logs ps shell artisan composer npm migrate fresh seed-admin test mysql crm-check
+.PHONY: help init setup up down build restart logs ps shell artisan composer npm migrate fresh seed-admin test mysql crm-check catalog-import crm-sync
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
@@ -68,3 +68,9 @@ mysql: ## MySQL CLI as the app user
 
 crm-check: ## Check the retailCRM connection and list store, delivery and payment codes
 	$(EXEC) php artisan retailcrm:check
+
+catalog-import: ## Restore the catalog (categories, products, photos, redirects) from src/database/data/catalog
+	$(EXEC) php artisan catalog:import
+
+crm-sync: ## Copy current prices from retailCRM into the catalog
+	$(EXEC) php artisan retailcrm:sync-catalog

@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Keep prices in line with retailCRM. Skipped until retailCRM is configured.
+Schedule::command('retailcrm:sync-catalog')
+    ->everyThirtyMinutes()
+    ->withoutOverlapping()
+    ->when(fn () => filled(config('services.retailcrm.url')) && filled(config('services.retailcrm.api_key')));

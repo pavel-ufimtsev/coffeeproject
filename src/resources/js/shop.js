@@ -16,3 +16,15 @@ if (twoFactor) {
         init(twoFactor),
     );
 }
+
+const buyForm = document.querySelector('[data-buy]');
+
+if (buyForm) {
+    void import('./shop/product-buy.js').then(({ init }) => init(buyForm));
+}
+
+const filters = document.querySelector('[data-filters]');
+
+if (filters) {
+    void import('./shop/catalog-filters.js').then(({ init }) => init(filters));
+}

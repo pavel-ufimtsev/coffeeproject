@@ -1,4 +1,4 @@
-@props(['title' => null])
+@props(['title' => null, 'meta' => [], 'jsonLd' => []])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -6,7 +6,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $title ? $title.' — ' : '' }}{{ config('app.name') }}</title>
+        <title>{{ $meta['title'] ?? (($title ? $title.' — ' : '').config('app.name')) }}</title>
+        @isset($meta['description'])
+            <meta name="description" content="{{ $meta['description'] }}">
+        @endisset
+        @isset($meta['robots'])
+            <meta name="robots" content="{{ $meta['robots'] }}">
+        @endisset
+        @isset($meta['canonical'])
+            <link rel="canonical" href="{{ $meta['canonical'] }}">
+        @endisset
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -15,6 +24,10 @@
         @fonts
 
         @vite(['resources/css/shop.css', 'resources/js/shop.js'])
+
+        @foreach ($jsonLd as $data)
+            <script type="application/ld+json">{!! json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
+        @endforeach
     </head>
     <body>
         <a class="skip-link" href="#main">{{ __('Skip to content') }}</a>
@@ -22,6 +35,12 @@
         <header class="site-header">
             <div class="container site-header__inner">
                 <a class="brand" href="{{ route('home') }}">{{ config('app.name') }}</a>
+
+                <nav class="site-nav site-nav--catalog" aria-label="{{ __('Catalog') }}">
+                    @foreach (\App\Support\Navigation::roots() as $root)
+                        <a href="{{ url($root->path()) }}" @if (request()->is($root->slug, "{$root->slug}/*")) aria-current="page" @endif>{{ $root->name }}</a>
+                    @endforeach
+                </nav>
 
                 <nav class="site-nav" aria-label="{{ __('Account') }}">
                     @auth
@@ -54,7 +73,13 @@
         </main>
 
         <footer class="site-footer">
-            <div class="container">
+            <div class="container site-footer__inner">
+                <nav class="footer-nav" aria-label="{{ __('Catalog') }}">
+                    @foreach (\App\Support\Navigation::roots() as $root)
+                        <a href="{{ url($root->path()) }}">{{ $root->name }}</a>
+                    @endforeach
+                </nav>
+                <p>{{ __('Roasted in Ekaterinburg, delivered across Russia.') }}</p>
                 <p>&copy; {{ date('Y') }} {{ config('app.name') }}</p>
             </div>
         </footer>
