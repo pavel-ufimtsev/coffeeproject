@@ -4,17 +4,19 @@
     @endif
 
     {{-- @chisel-passkeys --}}
-    <div class="passkey" data-passkey-login hidden>
-        <button type="button" class="button button--secondary button--block">{{ __('Log in with a passkey') }}</button>
-        <p class="field__error" data-passkey-error hidden></p>
-        <p class="divider"><span>{{ __('or use your email') }}</span></p>
-    </div>
+    @if (Laravel\Fortify\Features::canManagePasskeys())
+        <div class="passkey" data-passkey-login hidden>
+            <button type="button" class="button button--secondary button--block">{{ __('Log in with a passkey') }}</button>
+            <p class="field__error" data-passkey-error hidden></p>
+            <p class="divider"><span>{{ __('or use your email') }}</span></p>
+        </div>
+    @endif
     {{-- @end-chisel-passkeys --}}
 
     <form method="POST" action="{{ route('login.store') }}" class="stack">
         @csrf
 
-        <x-form.input name="email" type="email" :label="__('Email address')" required autofocus autocomplete="email webauthn" />
+        <x-form.input name="email" type="email" :label="__('Email address')" required autofocus :autocomplete="Laravel\Fortify\Features::canManagePasskeys() ? 'email webauthn' : 'email'" />
 
         <x-form.input name="password" type="password" :label="__('Password')" required autocomplete="current-password" />
 

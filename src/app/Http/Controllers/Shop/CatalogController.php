@@ -14,7 +14,6 @@ use App\Models\Roaster;
 use App\Services\Catalog\CatalogListing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -102,7 +101,7 @@ class CatalogController extends Controller
             'heading' => $heading,
             'intro' => $intro,
             'subcategories' => $root->children()->where('is_active', true)->withCount(['products' => fn ($q) => $q->active()])->get()->where('products_count', '>', 0),
-            'quickLinks' => $this->quickLinks($root),
+            'quickLinks' => FilterValue::brewLandings($root)->get(),
             'breadcrumbs' => $breadcrumbs,
             'meta' => [
                 'title' => ($landing ?? $category)->seo_title ?: __(':heading — buy with delivery across Russia | Coffee Project', ['heading' => $heading]),
@@ -165,19 +164,6 @@ class CatalogController extends Controller
             ],
             'jsonLd' => array_filter([$this->productJsonLd($product), $this->breadcrumbJsonLd($breadcrumbs)]),
         ]);
-    }
-
-    /**
-     * Popular landing pages linked at the top of a root category (brew methods for coffee).
-     *
-     * @return Collection<int, FilterValue>
-     */
-    private function quickLinks(Category $root): Collection
-    {
-        return FilterValue::where('is_landing', true)
-            ->whereRelation('group', fn ($q) => $q->where('category_id', $root->id)->where('slug', 'brew'))
-            ->orderBy('sort')
-            ->get();
     }
 
     /**

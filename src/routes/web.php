@@ -8,6 +8,7 @@ use App\Http\Controllers\Shop\HomeController;
 use App\Http\Controllers\Shop\SitemapController;
 use App\Http\Controllers\Shop\YandexFeedController;
 use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\Features;
 
 /*
 | Storefront and customer account pages (Blade). Login, registration and
@@ -33,12 +34,14 @@ Route::middleware('auth')->prefix('account')->name('account.')->group(function (
 });
 
 /* @chisel-passkeys */
-Route::get('.well-known/passkey-endpoints', function () {
-    return response()->json([
-        'enroll' => route('admin.security.edit'),
-        'manage' => route('admin.security.edit'),
-    ]);
-})->name('well-known.passkeys');
+if (Features::canManagePasskeys()) {
+    Route::get('.well-known/passkey-endpoints', function () {
+        return response()->json([
+            'enroll' => route('admin.security.edit'),
+            'manage' => route('admin.security.edit'),
+        ]);
+    })->name('well-known.passkeys');
+}
 /* @end-chisel-passkeys */
 
 /*

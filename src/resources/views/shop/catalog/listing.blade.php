@@ -17,9 +17,16 @@
                 @endforeach
             </nav>
         @elseif ($quickLinks->isNotEmpty())
-            <nav class="chips" aria-label="{{ __('Brew method') }}">
+            <nav class="brew-links" aria-label="{{ __('Brew method') }}">
                 @foreach ($quickLinks as $link)
-                    <a href="{{ url("/{$root->slug}/{$link->slug}") }}" class="chip" @if ($landing?->is($link)) aria-current="page" @endif>{{ $link->name }}</a>
+                    <a href="{{ url("/{$root->slug}/{$link->slug}") }}" class="brew-links__item" @if ($landing?->is($link)) aria-current="page" @endif>
+                        <span class="brew-links__icon">
+                            @if (file_exists(public_path("images/brew/{$link->slug}.svg")))
+                                <img src="/images/brew/{{ $link->slug }}.svg" alt="" width="36" height="36">
+                            @endif
+                        </span>
+                        <span>{{ $link->name }}</span>
+                    </a>
                 @endforeach
             </nav>
         @endif

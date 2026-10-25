@@ -19,8 +19,20 @@ export default defineConfig({
             ],
             refresh: true,
             fonts: [
+                // Admin.
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
+                }),
+                // Storefront: the old coffeeproject.ru pair, with Cyrillic.
+                bunny('Nunito', {
+                    weights: [400, 600, 700],
+                    subsets: ['latin', 'cyrillic'],
+                    preload: [{ weight: 400 }],
+                }),
+                bunny('Fira Sans Condensed', {
+                    weights: [500, 600],
+                    subsets: ['latin', 'cyrillic'],
+                    preload: false,
                 }),
             ],
         }),

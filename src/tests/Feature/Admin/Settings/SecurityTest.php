@@ -22,9 +22,14 @@ class SecurityTest extends TestCase
             'confirmPassword' => true,
         ]);
         /* @chisel-passkeys */
-        Features::passkeys([
-            'confirmPassword' => true,
-        ]);
+        // Passkeys are switched off in config/fortify.php; switch them on here
+        // so the page is still covered for when they come back.
+        config(['fortify.features' => [
+            ...config('fortify.features'),
+            Features::passkeys([
+                'confirmPassword' => true,
+            ]),
+        ]]);
         /* @end-chisel-passkeys */
 
         $user = User::factory()->admin()->create();

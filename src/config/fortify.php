@@ -182,9 +182,11 @@ return [
         ]),
         /* @end-chisel-2fa */
         /* @chisel-passkeys */
-        Features::passkeys([
-            'confirmPassword' => true,
-        ]),
+        // Hidden for now: uncomment to bring back passkey login and the
+        // passkey section of the admin security settings.
+        // Features::passkeys([
+        //     'confirmPassword' => true,
+        // ]),
         /* @end-chisel-passkeys */
     ],
 

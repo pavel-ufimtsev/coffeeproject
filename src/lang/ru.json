@@ -757,5 +757,11 @@
     "Nothing to buy: no variant with a price": "Нечего купить: нет фасовки с ценой",
     "retailCRM problem with a variant": "Проблема с фасовкой в retailCRM",
     "Offer not found in retailCRM": "Предложение не найдено в retailCRM",
-    "No price in retailCRM": "Нет цены в retailCRM"
+    "No price in retailCRM": "Нет цены в retailCRM",
+    "Support": "Поддержка",
+    "VK community": "Мы во ВКонтакте",
+    "Recommended!": "Рекомендуем!",
+    "Best sellers and popular coffees": "Хиты продаж и популярные сорта",
+    "Coffee for your brew method": "Кофе под ваш способ приготовления",
+    "All coffee": "Весь кофе"
 }

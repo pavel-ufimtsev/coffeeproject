@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -36,6 +37,19 @@ class FilterValue extends Model
         return [
             'is_landing' => 'boolean',
         ];
+    }
+
+    /**
+     * Brew-method landing pages of a root category, in menu order: the quick
+     * links at the top of /coffee and on the home page.
+     *
+     * @param  Builder<FilterValue>  $query
+     */
+    public function scopeBrewLandings(Builder $query, Category $root): void
+    {
+        $query->where('is_landing', true)
+            ->whereRelation('group', fn ($q) => $q->where('category_id', $root->id)->where('slug', 'brew'))
+            ->orderBy('sort');
     }
 
     /**
