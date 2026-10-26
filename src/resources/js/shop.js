@@ -31,6 +31,10 @@ if (catalog) {
     void import('./shop/catalog-live.js').then(({ init }) => init(catalog));
 }
 
+if (document.body.dataset.analytics === 'on') {
+    void import('./shop/analytics.js').then(({ loadMetrika }) => loadMetrika());
+}
+
 const cookieBanner = document.querySelector('[data-cookie-banner]');
 
 if (cookieBanner) {
@@ -57,4 +61,19 @@ if (contact) {
 
 for (const section of document.querySelectorAll('[data-collapsible]')) {
     void import('./shop/collapsible.js').then(({ init }) => init(section));
+}
+
+const moreReviews = document.querySelector('[data-reviews-more]');
+
+moreReviews?.addEventListener('click', () => {
+    for (const review of document.querySelectorAll('[data-review-more]')) {
+        review.hidden = false;
+    }
+    moreReviews.remove();
+});
+
+const quiz = document.querySelector('[data-quiz]');
+
+if (quiz) {
+    void import('./shop/quiz.js').then(({ init }) => init(quiz));
 }

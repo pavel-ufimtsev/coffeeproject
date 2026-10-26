@@ -9,8 +9,8 @@ use Symfony\Component\HttpFoundation\Cookie;
  * The visitor's answer to the cookie banner, kept in a cookie for a year.
  *
  * "necessary" allows only the cookies the site cannot work without; "all"
- * also allows analytics, should the site ever add any. Ask
- * allowsAnalytics() before loading such a script.
+ * also allows analytics (Yandex.Metrica). Ask allowsAnalytics() before
+ * loading such a script.
  */
 class CookieConsent
 {

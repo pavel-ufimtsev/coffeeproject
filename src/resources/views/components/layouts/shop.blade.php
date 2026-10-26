@@ -50,7 +50,8 @@
             <script type="application/ld+json">{!! json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
         @endforeach
     </head>
-    <body>
+    @php($metrika = config('services.yandex_metrika.id'))
+    <body @if ($metrika) data-metrika="{{ $metrika }}" @if (\App\Support\CookieConsent::allowsAnalytics(request())) data-analytics="on" @endif @endif>
         @php($cartCount = app(\App\Services\Cart\Cart::class)->count())
         <a class="skip-link" href="#main">{{ __('Skip to content') }}</a>
 
@@ -110,11 +111,14 @@
                         @foreach (\App\Support\Navigation::roots() as $root)
                             <a href="{{ url($root->path()) }}">{{ $root->name }}</a>
                         @endforeach
+                        <a href="{{ route('quiz') }}">{{ __('Find my coffee') }}</a>
                         <a href="{{ route('cart.show') }}">{{ __('Cart') }}</a>
                     </div>
                     <div class="site-footer__col">
                         <h2 class="site-footer__title">{{ __('Support') }}</h2>
-                        <a href="{{ route('contacts') }}">{{ __('Write to us') }}</a>
+                        <a href="{{ route('help.delivery') }}">{{ __('Delivery and payment') }}</a>
+                        <a href="{{ route('help.returns') }}">{{ __('Returns and exchanges') }}</a>
+                        <a href="{{ route('help.faq') }}">{{ __('Questions and answers') }}</a>
                         <a href="tel:{{ preg_replace('/[^\d+]/', '', config('shop.phone')) }}">{{ config('shop.phone') }}</a>
                         <a href="mailto:{{ config('shop.email') }}">{{ config('shop.email') }}</a>
                         @auth
@@ -127,6 +131,7 @@
                         <h2 class="site-footer__title">{{ __('Company') }}</h2>
                         <p>{{ __('Roasted in Ekaterinburg, delivered across Russia.') }}</p>
                         <a href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif>{{ __('About us') }}</a>
+                        <a href="{{ route('wholesale') }}" @if (request()->routeIs('wholesale')) aria-current="page" @endif>{{ __('For business') }}</a>
                         <a href="{{ route('contacts') }}" @if (request()->routeIs('contacts')) aria-current="page" @endif>{{ __('Contacts') }}</a>
                         <a href="{{ config('shop.vk') }}" rel="noopener">{{ __('VK community') }}</a>
                     </div>

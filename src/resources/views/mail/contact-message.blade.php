@@ -22,9 +22,17 @@
                 <td style="{{ $value }}"><a href="tel:{{ preg_replace('/[^\d+]/', '', $data['phone']) }}" style="color: #2e7d32;">{{ $data['phone'] }}</a></td>
             </tr>
         @endif
+        @foreach ($data['details'] ?? [] as $detailLabel => $detailValue)
+            <tr>
+                <td style="{{ $label }}">{{ $detailLabel }}</td>
+                <td style="{{ $value }}">{{ $detailValue }}</td>
+            </tr>
+        @endforeach
     </table>
 
-    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #eaeaea; white-space: pre-line;">{{ $data['message'] }}</div>
+    @if (filled($data['message']))
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #eaeaea; white-space: pre-line;">{{ $data['message'] }}</div>
+    @endif
 
     <p style="margin: 24px 0 0; font-size: 13px; color: #8a8a8a;">{{ __('Reply to this email to answer :name.', ['name' => $data['name']]) }}</p>
 </x-mail.layout>

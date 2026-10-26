@@ -44,6 +44,13 @@
                     @if ($product->roaster)
                         <p class="product__by">{{ __('Roaster') }}: {{ $product->roaster->name }}, {{ $product->roaster->city }}</p>
                     @endif
+                    @if ($rating)
+                        <a class="product__rating" href="#reviews">
+                            <span class="stars stars--small" style="--rating: {{ $rating }}" aria-hidden="true"></span>
+                            <span>{{ number_format($rating, 1, ',', '') }}</span>
+                            <span class="muted">{{ trans_choice(':count review|:count reviews', $reviews->count(), ['count' => $reviews->count()]) }}</span>
+                        </a>
+                    @endif
                 </header>
 
                 @if ($isCoffee && (filled($specs['tasting_notes'] ?? null) || $roastLevel || filled($specs['sca_score'] ?? null)))
@@ -195,6 +202,10 @@
                     {!! $product->description !!}
                 </div>
             </section>
+        @endif
+
+        @if ($product->status === \App\Enums\ProductStatus::Active)
+            @include('shop.catalog.reviews')
         @endif
 
         @if ($alternatives->isNotEmpty())

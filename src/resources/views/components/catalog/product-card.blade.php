@@ -1,4 +1,4 @@
-@props(['product', 'headingLevel' => 2])
+@props(['product', 'headingLevel' => 2, 'grind' => null])
 @php
     use App\Enums\ProductType;
     use App\Support\Money;
@@ -65,7 +65,7 @@
                         <span class="visually-hidden">{{ __('Grind') }}</span>
                         <select name="grind">
                             @foreach ($grinds as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
+                                <option value="{{ $value }}" @selected($value === $grind)>{{ $label }}</option>
                             @endforeach
                         </select>
                     </label>

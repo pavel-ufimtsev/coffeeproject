@@ -45,6 +45,10 @@ export function init(banner) {
             return;
         }
 
+        if (data.get('choice') === 'all') {
+            void import('./analytics.js').then(({ loadMetrika }) => loadMetrika());
+        }
+
         banner.classList.add('is-leaving');
         banner.addEventListener('animationend', () => banner.remove(), {
             once: true,

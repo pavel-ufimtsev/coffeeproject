@@ -1,2 +1,19 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /payment/
+Disallow: /quiz?
+
+# Yandex: the same page with ad tracking parameters is one page.
+User-agent: Yandex
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /payment/
+Disallow: /quiz?
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid&fbclid&from
+
+Sitemap: https://www.coffeeproject.ru/sitemap.xml

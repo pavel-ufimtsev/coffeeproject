@@ -24,7 +24,7 @@ class CatalogImportTest extends TestCase
         $this->assertSame(['accessory', 'chaj', 'coffee'], Category::roots()->orderBy('slug')->pluck('slug')->all());
         $this->assertSame(3, Product::count());
         $this->assertSame(4, ProductVariant::count());
-        $this->assertSame(3, Redirect::count());
+        $this->assertSame(3, Redirect::whereIn('from_path', ['/moskva/coffee', '/moskva/coffee/kenya', '/coffee/old-lot'])->count());
 
         $kenya = Product::where('slug', 'kenya-wolf')->first();
         $this->assertSame(ProductStatus::Active, $kenya->status);

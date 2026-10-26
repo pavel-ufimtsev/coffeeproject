@@ -90,4 +90,9 @@ return [
         'from_city_code' => (int) env('CDEK_FROM_CITY_CODE', 250),
     ],
 
+    // Yandex.Metrica counter; loads only for visitors who accepted analytics cookies.
+    'yandex_metrika' => [
+        'id' => env('YANDEX_METRIKA_ID'),
+    ],
+
 ];

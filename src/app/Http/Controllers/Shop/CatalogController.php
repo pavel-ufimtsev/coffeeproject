@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\FilterValue;
 use App\Models\Product;
 use App\Models\ProductCollection;
+use App\Models\ProductReview;
 use App\Models\ProductVariant;
 use App\Models\Roaster;
 use App\Services\Catalog\CatalogListing;
@@ -16,6 +17,7 @@ use App\Services\Checkout\CdekDelivery;
 use App\Services\Checkout\CourierRates;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -146,6 +148,7 @@ class CatalogController extends Controller
             ->get();
 
         $minPrice = $product->minPrice();
+        $reviews = $product->reviews()->approved()->latest('approved_at')->get();
         $landingTags = $product->filterValues->where('is_landing', true)->sortBy(fn (FilterValue $v) => [$v->group->sort, $v->sort])->values();
 
         return view('shop.catalog.product', [
@@ -156,6 +159,11 @@ class CatalogController extends Controller
             'landingTags' => $landingTags->reject(fn (FilterValue $v) => $v->group->slug === 'brew')->values(),
             'brewTags' => $landingTags->filter(fn (FilterValue $v) => $v->group->slug === 'brew')->values(),
             'delivery' => $this->deliveryFacts(),
+            'reviews' => $reviews,
+            'rating' => $reviews->isEmpty() ? null : round($reviews->avg('rating'), 1),
+            'brewMethods' => $product->type->hasGrind()
+                ? FilterValue::whereRelation('group', 'slug', 'brew')->orderBy('sort')->pluck('name')
+                : collect(),
             'shipsFrom' => $product->activeVariants->flatMap->locations->unique('id')->values(),
             'grinds' => $product->type->hasGrind() ? ProductType::grinds() : [],
             'alternatives' => $alternatives,
@@ -170,7 +178,7 @@ class CatalogController extends Controller
                 'image' => $product->images->first()?->url(),
                 'og_type' => 'product',
             ],
-            'jsonLd' => array_filter([$this->productJsonLd($product), $this->breadcrumbJsonLd($breadcrumbs)]),
+            'jsonLd' => array_filter([$this->productJsonLd($product, $reviews), $this->breadcrumbJsonLd($breadcrumbs)]),
         ]);
     }
 
@@ -245,7 +253,10 @@ class CatalogController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function productJsonLd(Product $product): ?array
+    /**
+     * @param  Collection<int, ProductReview>  $reviews  the approved reviews, newest first
+     */
+    private function productJsonLd(Product $product, Collection $reviews): ?array
     {
         $variants = $product->activeVariants->filter(fn (ProductVariant $v) => $v->price !== null && (float) $v->price > 0);
 
@@ -272,6 +283,20 @@ class CatalogController extends Controller
                 'availability' => $availability,
                 'url' => url($product->path()),
             ])->all(),
+            'aggregateRating' => $reviews->isEmpty() ? null : [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round($reviews->avg('rating'), 1),
+                'reviewCount' => $reviews->count(),
+                'bestRating' => 5,
+                'worstRating' => 1,
+            ],
+            'review' => $reviews->isEmpty() ? null : $reviews->take(5)->map(fn (ProductReview $review) => [
+                '@type' => 'Review',
+                'author' => ['@type' => 'Person', 'name' => $review->name],
+                'datePublished' => ($review->approved_at ?? $review->created_at)->toDateString(),
+                'reviewBody' => $review->body,
+                'reviewRating' => ['@type' => 'Rating', 'ratingValue' => $review->rating, 'bestRating' => 5, 'worstRating' => 1],
+            ])->values()->all(),
         ]);
     }
 }

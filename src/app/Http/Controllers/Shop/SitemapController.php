@@ -12,7 +12,7 @@ use Illuminate\Http\Response;
 class SitemapController extends Controller
 {
     /**
-     * List every indexable storefront page: the about and contacts pages,
+     * List every indexable storefront page: the company, help and quiz pages,
      * categories and landing pages with enough products, and active products.
      */
     public function __invoke(): Response
@@ -22,7 +22,17 @@ class SitemapController extends Controller
             ['loc' => route('home'), 'lastmod' => null],
             ['loc' => route('about'), 'lastmod' => null],
             ['loc' => route('contacts'), 'lastmod' => null],
+            ['loc' => route('wholesale'), 'lastmod' => null],
+            ['loc' => route('quiz'), 'lastmod' => null],
+            ['loc' => route('help'), 'lastmod' => null],
+            ['loc' => route('help.delivery'), 'lastmod' => null],
+            ['loc' => route('help.returns'), 'lastmod' => null],
+            ['loc' => route('help.faq'), 'lastmod' => null],
         ];
+
+        foreach (array_keys(config('shop.delivery_cities')) as $city) {
+            $urls[] = ['loc' => route('help.delivery.city', $city), 'lastmod' => null];
+        }
 
         $products = Product::active()->with('category.parent', 'filterValues', 'collections')->get();
 

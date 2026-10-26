@@ -11,9 +11,13 @@ use App\Http\Controllers\Shop\CdekWidgetController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\CookieConsentController;
+use App\Http\Controllers\Shop\HelpController;
 use App\Http\Controllers\Shop\HomeController;
 use App\Http\Controllers\Shop\PaymentController;
+use App\Http\Controllers\Shop\QuizController;
+use App\Http\Controllers\Shop\ReviewController;
 use App\Http\Controllers\Shop\SitemapController;
+use App\Http\Controllers\Shop\WholesaleController;
 use App\Http\Controllers\Shop\YandexFeedController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -35,6 +39,19 @@ Route::view('terms', 'shop.legal.terms')->name('legal.terms');
 Route::view('about', 'shop.about')->name('about');
 Route::get('contacts', [ContactController::class, 'show'])->name('contacts');
 Route::post('contacts', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contacts.store');
+Route::prefix('help')->name('help')->controller(HelpController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('delivery', 'delivery')->name('.delivery');
+    Route::get('delivery/{city}', 'city')->where('city', '[a-z-]+')->name('.delivery.city');
+    Route::get('returns', 'returns')->name('.returns');
+    Route::get('faq', 'faq')->name('.faq');
+});
+
+Route::get('quiz', QuizController::class)->name('quiz');
+Route::get('wholesale', [WholesaleController::class, 'show'])->name('wholesale');
+Route::post('wholesale', [WholesaleController::class, 'store'])->middleware('throttle:5,1')->name('wholesale.store');
+Route::post('reviews/{product}', [ReviewController::class, 'store'])->whereNumber('product')->middleware('throttle:5,1')->name('reviews.store');
+
 // The old site's contact and press pages.
 Route::permanentRedirect('more/contact', '/contacts');
 Route::permanentRedirect('press', '/about');

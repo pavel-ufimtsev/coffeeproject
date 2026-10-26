@@ -7,6 +7,7 @@ import {
     LayoutGrid,
     Layers,
     Mail,
+    MessageSquareText,
     Package,
     RefreshCw,
     ShoppingBag,
@@ -41,6 +42,7 @@ import { index as productsIndex } from '@/routes/admin/products';
 import { index as promoCodesIndex } from '@/routes/admin/promo-codes';
 import { index as redirectsIndex } from '@/routes/admin/redirects';
 import { index as retailcrmIndex } from '@/routes/admin/retailcrm';
+import { index as reviewsIndex } from '@/routes/admin/reviews';
 import { index as roastersIndex } from '@/routes/admin/roasters';
 import { index as usersIndex } from '@/routes/admin/users';
 import type { NavItem } from '@/types';
@@ -53,6 +55,7 @@ const mainNavItems: NavItem[] = [
     },
     { title: 'Orders', href: ordersIndex(), icon: ShoppingBag },
     { title: 'Promo codes', href: promoCodesIndex(), icon: TicketPercent },
+    { title: 'Reviews', href: reviewsIndex(), icon: MessageSquareText },
     { title: 'Delivery', href: deliveryEdit(), icon: Truck },
     { title: 'Emails', href: emailsEdit(), icon: Mail },
     { title: 'Products', href: productsIndex(), icon: Package },

@@ -6,6 +6,9 @@
 @if ($data['phone'])
 {{ __('Phone') }}: {{ $data['phone'] }}
 @endif
+@foreach ($data['details'] ?? [] as $detailLabel => $detailValue)
+{{ $detailLabel }}: {{ $detailValue }}
+@endforeach
 
 {{ $data['message'] }}
 

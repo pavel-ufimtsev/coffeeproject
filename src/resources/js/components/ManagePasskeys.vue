@@ -5,7 +5,6 @@ import type { Passkey } from '@/types/auth';
 import Heading from '@/components/Heading.vue';
 import PasskeyItem from '@/components/PasskeyItem.vue';
 import PasskeyRegister from '@/components/PasskeyRegister.vue';
-import { destroy } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
 
 export type Props = {
     canManagePasskeys?: boolean;
@@ -17,8 +16,13 @@ withDefaults(defineProps<Props>(), {
     passkeys: () => [],
 });
 
+// Fortify's passkey route, written out: while passkeys are switched off in
+// config/fortify.php, Wayfinder generates no helper for it and the build
+// would fail on the import.
+const destroyUrl = (id: number) => `/user/passkeys/${id}`;
+
 const handleDelete = (id: number, onError: () => void) => {
-    router.delete(destroy.url(id), {
+    router.delete(destroyUrl(id), {
         preserveScroll: true,
         onError,
     });

@@ -176,6 +176,9 @@ ADMIN_PASSWORD=a-strong-password
 RETAILCRM_URL=https://coffeeproject.retailcrm.ru
 RETAILCRM_API_KEY=               # Settings → Integration → API access keys
 RETAILCRM_SITE=                  # store code, see `php artisan retailcrm:check`
+
+SHOP_CONTACT_EMAIL=coffeeproject.ekb@gmail.com   # contact, wholesale and review emails
+YANDEX_METRIKA_ID=47060055       # the old site's counter; loads only after analytics consent
 ```
 
 Then install and build:

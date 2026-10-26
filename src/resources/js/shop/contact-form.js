@@ -107,11 +107,11 @@ export function init(root) {
         }
     });
 
-    root.querySelector('[data-contact-again]').addEventListener('click', () => {
+    root.querySelector('[data-contact-again]')?.addEventListener('click', () => {
         swap(() => {
             thanks.hidden = true;
             form.hidden = false;
-            form.querySelector('[name="message"]').focus();
+            (form.querySelector('textarea') ?? form.elements[0]).focus();
         });
     });
 }
@@ -278,9 +278,12 @@ function showThanks(form, thanks, message) {
     thanks.querySelector('[data-contact-thanks-text]').textContent = message;
 
     // Keep name, email and phone for a follow-up; clear the message itself.
-    const textarea = form.querySelector('[name="message"]');
-    textarea.value = '';
-    textarea.dispatchEvent(new Event('input'));
+    const textarea = form.querySelector('textarea');
+
+    if (textarea) {
+        textarea.value = '';
+        textarea.dispatchEvent(new Event('input'));
+    }
 
     swap(() => {
         form.hidden = true;
@@ -307,13 +310,19 @@ function swap(change) {
 }
 
 /**
- * "120 / 5000" under the message once the visitor starts typing.
+ * "120 / 5000" under the message once the visitor starts typing, where the
+ * form has a counter.
  *
  * @param {HTMLFormElement} form
  */
 function initCounter(form) {
-    const textarea = form.querySelector('[name="message"]');
+    const textarea = form.querySelector('textarea');
     const counter = form.querySelector('[data-contact-counter]');
+
+    if (!textarea || !counter) {
+        return;
+    }
+
     const max = textarea.maxLength;
 
     textarea.addEventListener('input', () => {

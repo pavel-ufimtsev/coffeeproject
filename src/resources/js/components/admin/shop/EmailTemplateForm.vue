@@ -125,7 +125,7 @@ const sendTest = () => {
                         v-for="name in template.placeholders"
                         :key="name"
                         class="mr-1 rounded bg-background px-1.5 py-0.5 text-xs"
-                        >{{ `{${name}}` }}</code
+                        >{{ '{' + name + '}' }}</code
                     >
                 </p>
                 <p class="text-muted-foreground">

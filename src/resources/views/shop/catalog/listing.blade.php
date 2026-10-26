@@ -14,6 +14,12 @@
                 @if ($intro)
                     <div class="catalog__intro">{!! nl2br(e($intro)) !!}</div>
                 @endif
+                @if ($root->slug === 'coffee' && ! $landing && $category->is($root))
+                    <a class="quiz-link" href="{{ route('quiz') }}">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg>
+                        <span>{{ __('Not sure what to choose? Answer five questions and we will pick a coffee for you.') }}</span>
+                    </a>
+                @endif
             </header>
         </div>
 

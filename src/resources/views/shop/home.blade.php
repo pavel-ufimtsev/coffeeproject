@@ -103,4 +103,14 @@
             </div>
         </section>
     @endif
+
+    <section class="container home-quiz" aria-labelledby="home-quiz-title">
+        <div class="home-quiz__inner">
+            <div>
+                <h2 id="home-quiz-title">{{ __('Not sure where to start?') }}</h2>
+                <p>{{ __('Answer five short questions about how you brew and what you like, and we will pick a coffee for you.') }}</p>
+            </div>
+            <a href="{{ route('quiz') }}" class="button button--large">{{ __('Find my coffee') }}</a>
+        </div>
+    </section>
 </x-layouts.shop>

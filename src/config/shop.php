@@ -72,4 +72,29 @@ return [
 
     'courier_city' => 'Екатеринбург',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Delivery pages
+    |--------------------------------------------------------------------------
+    |
+    | Cities with their own page at /help/delivery/{slug} (the old site's
+    | addresses), with the forms the texts need and the CDEK city code used
+    | to price a parcel from Ekaterinburg.
+    |
+    */
+
+    'delivery_cities' => [
+        'moskva' => ['name' => 'Москва', 'in' => 'в Москве', 'to' => 'в Москву', 'cdek' => 44],
+        'sankt-peterburg' => ['name' => 'Санкт-Петербург', 'in' => 'в Санкт-Петербурге', 'to' => 'в Санкт-Петербург', 'cdek' => 137],
+        'ekaterinburg' => ['name' => 'Екатеринбург', 'in' => 'в Екатеринбурге', 'to' => 'в Екатеринбург', 'cdek' => 250],
+        'novosibirsk' => ['name' => 'Новосибирск', 'in' => 'в Новосибирске', 'to' => 'в Новосибирск', 'cdek' => 270],
+        'kazan' => ['name' => 'Казань', 'in' => 'в Казани', 'to' => 'в Казань', 'cdek' => 424],
+        'nizhniy-novgorod' => ['name' => 'Нижний Новгород', 'in' => 'в Нижнем Новгороде', 'to' => 'в Нижний Новгород', 'cdek' => 414],
+        'chelyabinsk' => ['name' => 'Челябинск', 'in' => 'в Челябинске', 'to' => 'в Челябинск', 'cdek' => 259],
+        'samara' => ['name' => 'Самара', 'in' => 'в Самаре', 'to' => 'в Самару', 'cdek' => 430],
+        'omsk' => ['name' => 'Омск', 'in' => 'в Омске', 'to' => 'в Омск', 'cdek' => 268],
+        'perm' => ['name' => 'Пермь', 'in' => 'в Перми', 'to' => 'в Пермь', 'cdek' => 248],
+        'ufa' => ['name' => 'Уфа', 'in' => 'в Уфе', 'to' => 'в Уфу', 'cdek' => 256],
+    ],
+
 ];
