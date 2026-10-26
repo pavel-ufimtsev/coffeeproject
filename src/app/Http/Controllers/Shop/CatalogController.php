@@ -12,6 +12,8 @@ use App\Models\ProductCollection;
 use App\Models\ProductVariant;
 use App\Models\Roaster;
 use App\Services\Catalog\CatalogListing;
+use App\Services\Checkout\CdekDelivery;
+use App\Services\Checkout\CourierRates;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -144,13 +146,16 @@ class CatalogController extends Controller
             ->get();
 
         $minPrice = $product->minPrice();
+        $landingTags = $product->filterValues->where('is_landing', true)->sortBy(fn (FilterValue $v) => [$v->group->sort, $v->sort])->values();
 
         return view('shop.catalog.product', [
             'product' => $product,
             'root' => $root,
             'isArchived' => $isArchived,
             'isDraft' => $product->status === ProductStatus::Draft,
-            'landingTags' => $product->filterValues->where('is_landing', true)->sortBy(fn (FilterValue $v) => [$v->group->sort, $v->sort])->values(),
+            'landingTags' => $landingTags->reject(fn (FilterValue $v) => $v->group->slug === 'brew')->values(),
+            'brewTags' => $landingTags->filter(fn (FilterValue $v) => $v->group->slug === 'brew')->values(),
+            'delivery' => $this->deliveryFacts(),
             'shipsFrom' => $product->activeVariants->flatMap->locations->unique('id')->values(),
             'grinds' => $product->type->hasGrind() ? ProductType::grinds() : [],
             'alternatives' => $alternatives,
@@ -167,6 +172,24 @@ class CatalogController extends Controller
             ],
             'jsonLd' => array_filter([$this->productJsonLd($product), $this->breadcrumbJsonLd($breadcrumbs)]),
         ]);
+    }
+
+    /**
+     * How the order gets to the shopper, for the lines under the cart button.
+     *
+     * @return array{courier: bool, courier_free_from: float|null, cdek: bool, cdek_free_from: float|null}
+     */
+    private function deliveryFacts(): array
+    {
+        $courier = app(CourierRates::class);
+        $cdek = app(CdekDelivery::class);
+
+        return [
+            'courier' => $courier->enabled(),
+            'courier_free_from' => $courier->enabled() && $courier->price() > 0 ? $courier->freeFrom() : null,
+            'cdek' => $cdek->enabled(),
+            'cdek_free_from' => $cdek->enabled() ? $cdek->freeFrom() : null,
+        ];
     }
 
     /**

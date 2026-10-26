@@ -12,13 +12,17 @@ use Illuminate\Http\Response;
 class SitemapController extends Controller
 {
     /**
-     * List every indexable storefront page: categories and landing pages with
-     * enough products, and active products.
+     * List every indexable storefront page: the about and contacts pages,
+     * categories and landing pages with enough products, and active products.
      */
     public function __invoke(): Response
     {
         $min = config('catalog.min_indexable_products');
-        $urls = [['loc' => route('home'), 'lastmod' => null]];
+        $urls = [
+            ['loc' => route('home'), 'lastmod' => null],
+            ['loc' => route('about'), 'lastmod' => null],
+            ['loc' => route('contacts'), 'lastmod' => null],
+        ];
 
         $products = Product::active()->with('category.parent', 'filterValues', 'collections')->get();
 

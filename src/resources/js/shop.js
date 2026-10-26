@@ -48,3 +48,13 @@ const checkout = document.querySelector('[data-checkout]');
 if (checkout?.querySelector('[data-checkout-form]')) {
     void import('./shop/checkout.js').then(({ init }) => init(checkout));
 }
+
+const contact = document.querySelector('[data-contact]');
+
+if (contact) {
+    void import('./shop/contact-form.js').then(({ init }) => init(contact));
+}
+
+for (const section of document.querySelectorAll('[data-collapsible]')) {
+    void import('./shop/collapsible.js').then(({ init }) => init(section));
+}

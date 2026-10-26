@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * A product page in the catalog. Its content lives here; what can be bought
@@ -255,5 +256,53 @@ class Product extends Model
         }
 
         return $list;
+    }
+
+    /**
+     * The tasting notes as short pills ("Малина", "Белое вино") when the
+     * field is a plain list; an empty array when it is written as a sentence
+     * ("Во вкусе ноты миндаля…"), which is then shown as it is.
+     *
+     * @return list<string>
+     */
+    public function tastingNotes(): array
+    {
+        $notes = trim((string) ($this->specs['tasting_notes'] ?? ''));
+
+        // "Во вкусе ноты миндаля" puts every note in the genitive, and a
+        // text that mentions the coffee itself describes it rather than lists.
+        if ($notes === '' || preg_match('/^(во вкусе|в чашке)\b|\bкофе\b/iu', $notes)) {
+            return [];
+        }
+
+        $notes = preg_replace('/^букет\s*:\s*/iu', '', $notes);
+        $parts = collect(preg_split('/\s*(?:,|;|\s+и\s+)\s*/u', $notes))
+            ->map(fn (string $note) => trim(rtrim(trim($note), '.')))
+            ->filter()
+            ->values();
+
+        $isList = $parts->count() > 1
+            && $parts->every(fn (string $note) => mb_strlen($note) <= 28 && substr_count($note, ' ') <= 2);
+
+        return $isList ? $parts->map(fn (string $note) => Str::ucfirst($note))->all() : [];
+    }
+
+    /**
+     * The roast on a five-step scale from light (1) to dark (5), or null when
+     * the roast is not set or not recognised.
+     */
+    public function roastLevel(): ?int
+    {
+        $roast = mb_strtolower((string) ($this->specs['roast'] ?? ''));
+
+        return match (true) {
+            $roast === '' => null,
+            str_contains($roast, 'средне-светл') || str_contains($roast, 'светло-средн') => 2,
+            str_contains($roast, 'средне-тёмн') || str_contains($roast, 'средне-темн') => 4,
+            str_contains($roast, 'светл') => 1,
+            str_contains($roast, 'тёмн') || str_contains($roast, 'темн') => 5,
+            str_contains($roast, 'средн') => 3,
+            default => null,
+        };
     }
 }

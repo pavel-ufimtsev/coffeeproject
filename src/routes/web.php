@@ -9,6 +9,7 @@ use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
 use App\Http\Controllers\Shop\CdekWidgetController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\CookieConsentController;
 use App\Http\Controllers\Shop\HomeController;
 use App\Http\Controllers\Shop\PaymentController;
@@ -31,6 +32,13 @@ Route::get('feeds/yandex.xml', YandexFeedController::class)->name('feeds.yandex'
 // /privacy-policy is the old site's address.
 Route::view('privacy-policy', 'shop.legal.privacy')->name('legal.privacy');
 Route::view('terms', 'shop.legal.terms')->name('legal.terms');
+Route::view('about', 'shop.about')->name('about');
+Route::get('contacts', [ContactController::class, 'show'])->name('contacts');
+Route::post('contacts', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contacts.store');
+// The old site's contact and press pages.
+Route::permanentRedirect('more/contact', '/contacts');
+Route::permanentRedirect('press', '/about');
+
 Route::post('cookie-consent', CookieConsentController::class)->middleware('throttle:30,1')->name('cookie-consent');
 
 Route::prefix('cart')->name('cart.')->group(function () {

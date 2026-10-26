@@ -114,6 +114,7 @@
                     </div>
                     <div class="site-footer__col">
                         <h2 class="site-footer__title">{{ __('Support') }}</h2>
+                        <a href="{{ route('contacts') }}">{{ __('Write to us') }}</a>
                         <a href="tel:{{ preg_replace('/[^\d+]/', '', config('shop.phone')) }}">{{ config('shop.phone') }}</a>
                         <a href="mailto:{{ config('shop.email') }}">{{ config('shop.email') }}</a>
                         @auth
@@ -125,6 +126,8 @@
                     <div class="site-footer__col">
                         <h2 class="site-footer__title">{{ __('Company') }}</h2>
                         <p>{{ __('Roasted in Ekaterinburg, delivered across Russia.') }}</p>
+                        <a href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif>{{ __('About us') }}</a>
+                        <a href="{{ route('contacts') }}" @if (request()->routeIs('contacts')) aria-current="page" @endif>{{ __('Contacts') }}</a>
                         <a href="{{ config('shop.vk') }}" rel="noopener">{{ __('VK community') }}</a>
                     </div>
                 </div>

@@ -29,6 +29,9 @@ return [
 
     'vk' => env('SHOP_VK', 'https://vk.com/coffee_project'),
 
+    // Where messages from the contact form go. Replies go straight to the sender.
+    'contact_email' => env('SHOP_CONTACT_EMAIL', 'coffeeproject.ekb@gmail.com'),
+
     /*
     |--------------------------------------------------------------------------
     | Company details

@@ -71,7 +71,7 @@ class CatalogPagesTest extends TestCase
             ->assertSee('250 г')
             ->assertSee('1 кг')
             ->assertSee('Средняя обжарка')
-            ->assertSee('Отправка: Екатеринбург')
+            ->assertSee('отправка: Екатеринбург')
             ->assertSee('"@type":"Product"', false)
             ->assertSee('"priceCurrency":"RUB"', false);
     }
