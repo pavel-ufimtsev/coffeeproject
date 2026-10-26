@@ -6,6 +6,7 @@ import {
     FolderTree,
     LayoutGrid,
     Layers,
+    Mail,
     Package,
     RefreshCw,
     ShoppingBag,
@@ -33,6 +34,7 @@ import { dashboard } from '@/routes/admin';
 import { index as categoriesIndex } from '@/routes/admin/categories';
 import { index as collectionsIndex } from '@/routes/admin/collections';
 import { edit as deliveryEdit } from '@/routes/admin/delivery';
+import { edit as emailsEdit } from '@/routes/admin/emails';
 import { index as filtersIndex } from '@/routes/admin/filter-groups';
 import { index as ordersIndex } from '@/routes/admin/orders';
 import { index as productsIndex } from '@/routes/admin/products';
@@ -52,6 +54,7 @@ const mainNavItems: NavItem[] = [
     { title: 'Orders', href: ordersIndex(), icon: ShoppingBag },
     { title: 'Promo codes', href: promoCodesIndex(), icon: TicketPercent },
     { title: 'Delivery', href: deliveryEdit(), icon: Truck },
+    { title: 'Emails', href: emailsEdit(), icon: Mail },
     { title: 'Products', href: productsIndex(), icon: Package },
     { title: 'Categories', href: categoriesIndex(), icon: FolderTree },
     { title: 'Filters', href: filtersIndex(), icon: SlidersHorizontal },

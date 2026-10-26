@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Settings\ProfileController;
 use App\Http\Controllers\Admin\Settings\SecurityController;
 use App\Http\Controllers\Admin\Shop\DeliveryController;
+use App\Http\Controllers\Admin\Shop\EmailController;
 use App\Http\Controllers\Admin\Shop\OrderController;
 use App\Http\Controllers\Admin\Shop\PromoCodeController;
 use App\Http\Controllers\Admin\UserController;
@@ -32,13 +33,17 @@ Route::get('/', DashboardController::class)->name('dashboard');
 
 Route::resource('users', UserController::class)->except('show');
 
-// Shop: orders, promo codes, delivery prices.
+// Shop: orders, promo codes, delivery prices, customer emails.
 Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
 Route::post('orders/{order}/retailcrm', [OrderController::class, 'pushToRetailCrm'])->middleware('throttle:10,1')->name('orders.retailcrm');
 Route::resource('promo-codes', PromoCodeController::class)->except('show');
 Route::get('delivery', [DeliveryController::class, 'edit'])->name('delivery.edit');
 Route::put('delivery', [DeliveryController::class, 'update'])->name('delivery.update');
 Route::put('delivery/cdek', [DeliveryController::class, 'updateCdek'])->name('delivery.cdek.update');
+Route::get('emails', [EmailController::class, 'edit'])->name('emails.edit');
+Route::put('emails/{template}', [EmailController::class, 'update'])->name('emails.update');
+Route::get('emails/{template}/preview', [EmailController::class, 'preview'])->name('emails.preview');
+Route::post('emails/{template}/test', [EmailController::class, 'test'])->middleware('throttle:10,1')->name('emails.test');
 
 // Catalog. Reorder routes come before the resources so "order" is not taken for an ID.
 Route::resource('products', ProductController::class)->except('show');
