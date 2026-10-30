@@ -85,9 +85,13 @@ class FortifyServiceProvider extends ServiceProvider
         /* @end-chisel-email-verification */
 
         /* @chisel-registration */
-        Fortify::registerView(fn () => view('auth.register', [
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
-        ]));
+        Fortify::registerView(function (Request $request) {
+            $request->session()->put(CreateNewUser::SHOWN_AT, now()->timestamp);
+
+            return view('auth.register', [
+                'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            ]);
+        });
         /* @end-chisel-registration */
 
         /* @chisel-2fa */

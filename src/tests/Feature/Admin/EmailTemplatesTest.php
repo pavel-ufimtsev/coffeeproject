@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Actions\Fortify\CreateNewUser;
 use App\Enums\DeliveryMethod;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
@@ -147,7 +148,7 @@ class EmailTemplatesTest extends TestCase
     {
         Mail::fake();
 
-        $this->post(route('register.store'), [
+        $this->withSession([CreateNewUser::SHOWN_AT => now()->subMinute()->timestamp])->post(route('register.store'), [
             'name' => 'Анна',
             'email' => 'anna@example.ru',
             'password' => 'password',

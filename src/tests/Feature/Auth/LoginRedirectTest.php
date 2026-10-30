@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Actions\Fortify\CreateNewUser;
 use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,7 +36,7 @@ class LoginRedirectTest extends TestCase
 
     public function test_registration_always_creates_a_customer()
     {
-        $this->post(route('register.store'), [
+        $this->withSession([CreateNewUser::SHOWN_AT => now()->subMinute()->timestamp])->post(route('register.store'), [
             'name' => 'Sneaky',
             'email' => 'sneaky@example.com',
             'role' => 'admin',

@@ -10,6 +10,12 @@
 
         <x-form.input name="password_confirmation" type="password" :label="__('Confirm password')" required autocomplete="new-password" />
 
+        {{-- Honeypot: people never see it, bots fill it in. --}}
+        <div class="contact-form__trap" aria-hidden="true">
+            <label for="register-website">Website</label>
+            <input type="text" id="register-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
         <button type="submit" class="button button--block">{{ __('Create account') }}</button>
     </form>
 
