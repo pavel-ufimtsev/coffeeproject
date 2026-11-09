@@ -11,7 +11,7 @@ use App\Models\BlogTag;
 use App\Models\Redirect;
 use App\Services\Catalog\ImageProcessor;
 use Generator;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -147,7 +147,7 @@ class ArchiveImporter
         // Any image reference that could not be stored is dropped rather than left broken.
         $body = preg_replace('/!\[[^\]]*\]\(archive-image:[^)]+\)\n?/', '', $body) ?? $body;
 
-        $published = $data['published_at'] ? Carbon::parse($data['published_at']) : null;
+        $published = $data['published_at'] ? Date::parse($data['published_at']) : null;
 
         $attributes = [
             'title' => Str::limit($data['title'], 250, ''),

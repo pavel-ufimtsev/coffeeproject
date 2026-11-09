@@ -19,7 +19,7 @@ class BlogPostFactory extends Factory
      */
     public function definition(): array
     {
-        $title = Str::ucfirst(fake()->unique()->words(4, true));
+        $title = rtrim(fake()->unique()->sentence(4), '.');
 
         return [
             'slug' => Str::slug($title),

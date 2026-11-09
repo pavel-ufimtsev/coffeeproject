@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\ApiAgent;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Cart\Cart;
@@ -10,10 +11,13 @@ use App\Services\RetailCrm\RetailCrm;
 use App\Services\TBank\TBank;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -47,6 +51,16 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureAuthorization();
         $this->configureEvents();
+        $this->configureRateLimits();
+    }
+
+    /**
+     * Request limits for the agent API: per token, or per address before sign-in.
+     */
+    protected function configureRateLimits(): void
+    {
+        RateLimiter::for('blog-api', fn (Request $request) => Limit::perMinute(120)
+            ->by(($agent = auth('sanctum')->user()) instanceof ApiAgent ? 'token:'.$agent->currentAccessToken()->id : 'ip:'.$request->ip()));
     }
 
     /**
@@ -67,7 +81,8 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureAuthorization(): void
     {
-        Gate::define('access-admin', fn (User $user): bool => $user->isAdmin());
+        // Only people can be admins; API agents never pass.
+        Gate::define('access-admin', fn (mixed $user): bool => $user instanceof User && $user->isAdmin());
     }
 
     /**

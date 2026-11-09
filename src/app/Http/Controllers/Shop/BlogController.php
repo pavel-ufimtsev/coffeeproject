@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -56,7 +57,7 @@ class BlogController extends Controller
         // Exact match first; other capitalisations of an old address redirect to it.
         $post = BlogPost::where('slug', $slug)->with(['category', 'cover', 'tags'])->first()
             ?? BlogPost::whereRaw('LOWER(slug) = ?', [mb_strtolower($slug)])->with(['category', 'cover', 'tags'])->first();
-        $isPreview = $post && ! $post->isVisible() && $request->user()?->can('access-admin');
+        $isPreview = $post && ! $post->isVisible() && Gate::allows('access-admin');
 
         abort_unless($post && ($post->isVisible() || $isPreview), 404);
 

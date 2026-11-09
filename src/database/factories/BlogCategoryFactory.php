@@ -18,7 +18,7 @@ class BlogCategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->words(2, true);
+        $name = rtrim(fake()->unique()->sentence(2), '.');
 
         return [
             'slug' => Str::slug($name),

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BlogPostStatus;
+use Carbon\CarbonInterface;
 use Database\Factories\BlogPostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Carbon;
 
 /**
  * A blog article at /blog/{slug}, written in Markdown.
@@ -25,7 +25,7 @@ use Illuminate\Support\Carbon;
  * @property string $body
  * @property int|null $cover_image_id
  * @property BlogPostStatus $status
- * @property Carbon|null $published_at
+ * @property CarbonInterface|null $published_at
  * @property string|null $author_name
  * @property string|null $seo_title
  * @property string|null $seo_description
@@ -35,14 +35,14 @@ use Illuminate\Support\Carbon;
  * @property string $source
  * @property string|null $legacy_url
  * @property array<string, mixed>|null $import_meta
- * @property Carbon|null $edited_at
+ * @property CarbonInterface|null $edited_at
  * @property string|null $triage_decision
  * @property int|null $triage_confidence
  * @property string|null $triage_reason
  * @property string|null $triage_merge_into
- * @property Carbon|null $triaged_at
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonInterface|null $triaged_at
+ * @property CarbonInterface|null $created_at
+ * @property CarbonInterface|null $updated_at
  */
 #[Fillable([
     'blog_category_id', 'slug', 'title', 'excerpt', 'body', 'cover_image_id', 'status', 'published_at',
@@ -168,7 +168,7 @@ class BlogPost extends Model
     /**
      * The date the article was last changed, if that was after it went live.
      */
-    public function updatedAfterPublishing(): ?Carbon
+    public function updatedAfterPublishing(): ?CarbonInterface
     {
         $edited = $this->edited_at;
 
