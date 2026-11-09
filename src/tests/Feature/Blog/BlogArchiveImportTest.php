@@ -20,6 +20,8 @@ class BlogArchiveImportTest extends TestCase
 
     private string $bundle;
 
+    private string $report;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,6 +30,7 @@ class BlogArchiveImportTest extends TestCase
         $root = sys_get_temp_dir().'/blog-archive-test-'.uniqid();
         $this->archive = "{$root}/backups";
         $this->bundle = "{$root}/bundle";
+        $this->report = "{$root}/report.csv";
         $this->makeArchive();
     }
 
@@ -41,7 +44,7 @@ class BlogArchiveImportTest extends TestCase
     public function test_it_extracts_and_imports_posts_as_drafts()
     {
         $this->artisan('blog:extract-archive', ['archive' => $this->archive, '--out' => $this->bundle])->assertSuccessful();
-        $this->artisan('blog:import', ['--path' => $this->bundle])->assertSuccessful();
+        $this->artisan('blog:import', ['--path' => $this->bundle, '--report' => $this->report])->assertSuccessful();
 
         // Two posts and the brewing guide; the folder without article markers is not a post.
         $this->assertSame(['how_make_coffee_in_cezve', 'kofe-v-dzhezve', 'zipped_post'], BlogPost::orderBy('slug')->pluck('slug')->all());
@@ -89,17 +92,17 @@ class BlogArchiveImportTest extends TestCase
         $this->assertSame(6, BlogCategory::count());
         $this->assertSame('/blog/c/zavarivanie', Redirect::where('from_path', '/blog/c/kofevarki')->value('to_path'));
 
-        $this->assertFileExists(storage_path('app/blog-import-report.csv'));
+        $this->assertFileExists($this->report);
     }
 
     public function test_running_it_again_updates_untouched_posts_and_keeps_edited_ones()
     {
         $this->artisan('blog:extract-archive', ['archive' => $this->archive, '--out' => $this->bundle])->assertSuccessful();
-        $this->artisan('blog:import', ['--path' => $this->bundle])->assertSuccessful();
+        $this->artisan('blog:import', ['--path' => $this->bundle, '--report' => $this->report])->assertSuccessful();
 
         BlogPost::where('slug', 'zipped_post')->first()->update(['title' => 'Отредактировано', 'edited_at' => now()]);
 
-        $this->artisan('blog:import', ['--path' => $this->bundle])->assertSuccessful();
+        $this->artisan('blog:import', ['--path' => $this->bundle, '--report' => $this->report])->assertSuccessful();
 
         $this->assertSame('Отредактировано', BlogPost::where('slug', 'zipped_post')->value('title'));
         $this->assertSame(3, BlogPost::count());
@@ -111,7 +114,7 @@ class BlogArchiveImportTest extends TestCase
     public function test_a_dry_run_writes_nothing()
     {
         $this->artisan('blog:extract-archive', ['archive' => $this->archive, '--out' => $this->bundle])->assertSuccessful();
-        $this->artisan('blog:import', ['--path' => $this->bundle, '--dry-run' => true])->assertSuccessful();
+        $this->artisan('blog:import', ['--path' => $this->bundle, '--dry-run' => true, '--report' => $this->report])->assertSuccessful();
 
         $this->assertSame(0, BlogPost::count());
         $this->assertSame(0, BlogCategory::count());

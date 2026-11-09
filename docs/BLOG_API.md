@@ -136,7 +136,7 @@ Send only the fields you change.
 | `tags` | A list of tag names. It replaces the current list. |
 | `products` | A list of product slugs. It replaces the current list. |
 | `triage_decision`, `triage_confidence` (0-100), `triage_reason`, `triage_merge_into` (slug) | Your editorial verdict. Setting any of them stamps `triaged_at`. |
-| `note` | Why you changed it. Saved on the revision. |
+| `note` | Why you changed it, up to 255 characters. Saved on the revision. |
 
 Text changes (`title`, `excerpt`, `body`, `seo_title`, `seo_description`) create a revision. Triage fields alone do not.
 
@@ -146,7 +146,7 @@ Text changes (`title`, `excerpt`, `body`, `seo_title`, `seo_description`) create
 |---|---|---|
 | `POST /posts/{post}/publish` | optional `published_at` | Goes live, keeping its date. Old addresses of the post (e.g. `/brew/cezve` for a brewing guide) now redirect here. A redirect away from the post's own address is removed. |
 | `POST /posts/{post}/unpublish` | none | Back to draft; the address answers 404 |
-| `POST /posts/{post}/archive` | `redirect_to`, `note` | Retired. Its address (and its old addresses) redirect to `redirect_to`, which must start with `/`, e.g. `/blog/c/o-kofe` or `/blog/other-post`. |
+| `POST /posts/{post}/archive` | `redirect_to`, `note` (up to 255 characters) | Retired. Its address (and its old addresses) redirect to `redirect_to`, which must start with `/`, e.g. `/blog/c/o-kofe` or `/blog/other-post`. |
 | `DELETE /posts/{post}` | optional `redirect_to` | Moved to the bin (`?trashed=1` lists it) |
 
 Prefer **archive with a redirect** over delete. Search engines and old links then land somewhere useful.

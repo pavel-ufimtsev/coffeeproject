@@ -8,7 +8,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Throwable;
 
-#[Signature('blog:import {--path= : Bundle folder from blog:extract-archive (default storage/app/private/blog-restore)} {--dry-run : Report what would change without writing} {--only= : Import one post by slug}')]
+#[Signature('blog:import {--path= : Bundle folder from blog:extract-archive (default storage/app/private/blog-restore)} {--dry-run : Report what would change without writing} {--only= : Import one post by slug} {--report= : Where to write the CSV report (default storage/app/blog-import-report.csv)}')]
 #[Description('Load the restored blog posts into the site as drafts')]
 class BlogImportCommand extends Command
 {
@@ -32,7 +32,7 @@ class BlogImportCommand extends Command
             return self::FAILURE;
         }
 
-        $file = storage_path('app/blog-import-report.csv');
+        $file = $this->option('report') ?: storage_path('app/blog-import-report.csv');
         ArchiveImporter::writeReport($result['report'], $file);
 
         $suggested = collect($result['report'])->countBy('suggested_action')->sortKeys();
