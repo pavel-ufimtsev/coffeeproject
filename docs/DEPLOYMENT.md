@@ -252,6 +252,28 @@ It should end with `==> Deployed <commit>`. Open `https://your.real.domain` and 
 2. In Resend, go to **Webhooks → Add endpoint**, enter `https://your.real.domain/resend/webhook`, and select the `email.*` events.
 3. Copy the webhook's signing secret into `RESEND_WEBHOOK_SECRET` in `/var/www/coffeeproject/src/.env`, then run `./deploy.sh` so the cached config picks it up.
 
+## Part 3: Restore the old blog (once)
+
+The old blog's posts come from the web archive. The archive stays on your machine. You build a restore bundle locally, copy it to the server, and import it there. Every post arrives as a **draft**, so nothing goes live by itself.
+
+On your machine, from the repo root:
+
+```bash
+docker compose run --rm -v "$(cd ../coffeeproject_yii/CoffeeProjectWebArchive/backups && pwd)":/archive:ro \
+    app php artisan blog:extract-archive /archive
+rsync -az src/storage/app/private/blog-restore/ \
+    coffeeproject@your.server:/var/www/coffeeproject/src/storage/app/private/blog-restore/
+```
+
+On the server, as the app user in `/var/www/coffeeproject/src`:
+
+```bash
+php artisan blog:import --dry-run   # what would change
+php artisan blog:import             # posts as drafts, images as WebP, the six blog sections
+```
+
+`storage/app/blog-import-report.csv` lists every post with its word count, missing images and a suggested action. Running the import again updates archive posts nobody has edited and never overwrites edited ones. You can delete the bundle once the import is done.
+
 ---
 
 ## SSH keys at a glance

@@ -87,6 +87,8 @@ class BlogController extends Controller
             'products' => $products,
             'related' => $this->related($post),
             'isPreview' => $isPreview,
+            // The cover is not repeated above the text when the article already shows that photo.
+            'showCover' => $post->cover && ! str_contains($rendered['html'], $post->cover->path),
             'breadcrumbs' => $breadcrumbs,
             'meta' => [
                 'title' => $post->seo_title ?: "{$post->title} | ".config('shop.name'),

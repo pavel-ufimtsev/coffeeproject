@@ -28,7 +28,7 @@
                 </p>
             </header>
 
-            @if ($post->cover)
+            @if ($showCover)
                 <figure class="blog-article__cover">
                     <img src="{{ $post->cover->url() }}" alt="{{ $post->cover->alt }}" @if ($post->cover->width) width="{{ $post->cover->width }}" height="{{ $post->cover->height }}" @endif fetchpriority="high">
                     @if ($post->cover->caption || $post->cover->credit)
