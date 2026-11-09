@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
+use App\Models\BlogCategory;
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\FilterValue;
 use App\Models\Product;
@@ -13,7 +15,8 @@ class SitemapController extends Controller
 {
     /**
      * List every indexable storefront page: the company, help and quiz pages,
-     * categories and landing pages with enough products, and active products.
+     * categories and landing pages with enough products, active products and
+     * the blog.
      */
     public function __invoke(): Response
     {
@@ -57,6 +60,23 @@ class SitemapController extends Controller
 
         foreach ($products->sortBy('sort') as $product) {
             $urls[] = ['loc' => url($product->path()), 'lastmod' => $product->updated_at?->toAtomString()];
+        }
+
+        // The blog: its home, sections with articles and every indexable article.
+        $posts = BlogPost::visible()->where('noindex', false)->whereNull('canonical_url')->latest('published_at')->get();
+        if ($posts->isNotEmpty()) {
+            $urls[] = ['loc' => route('blog.index'), 'lastmod' => $posts->max('updated_at')?->toAtomString()];
+        }
+
+        foreach (BlogCategory::where('is_active', true)->orderBy('sort')->get() as $blogCategory) {
+            $latest = $posts->where('blog_category_id', $blogCategory->id)->max('updated_at');
+            if ($latest) {
+                $urls[] = ['loc' => url($blogCategory->path()), 'lastmod' => $latest->toAtomString()];
+            }
+        }
+
+        foreach ($posts as $post) {
+            $urls[] = ['loc' => url($post->path()), 'lastmod' => $post->updated_at?->toAtomString()];
         }
 
         return self::xml(view('feeds.sitemap', ['urls' => $urls])->render());

@@ -1183,5 +1183,21 @@
     "optional": "необязательно",
     "Waiting for approval": "Ждут проверки",
     "Published reviews": "Опубликованные",
-    "Rejected reviews": "Отклонённые"
+    "Rejected reviews": "Отклонённые",
+    "Scheduled": "Запланирована",
+    "YouTube video": "Видео на YouTube",
+    "Watch on YouTube": "Смотреть на YouTube",
+    "Blog": "Блог",
+    "Coffee blog": "Блог о кофе",
+    "page :page": "страница :page",
+    "Brewing guides, recipes and stories about coffee from the Coffee Project team.": "Как заваривать кофе, рецепты и истории о кофе от команды Coffee Project.",
+    "Blog sections": "Разделы блога",
+    "No articles here yet.": "Здесь пока нет статей.",
+    "Preview: this article is not on the site (status: :status).": "Предпросмотр: статьи нет на сайте (статус: :status).",
+    "Updated :date": "Обновлено :date",
+    ":count min read|:count min read": ":count минута чтения|:count минуты чтения|:count минут чтения",
+    "Photo: :credit": "Фото: :credit",
+    "In this article": "В этой статье",
+    "Coffee for this article": "Кофе к этой статье",
+    "Read next": "Читайте также"
 }

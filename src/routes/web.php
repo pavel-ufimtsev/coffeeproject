@@ -5,6 +5,7 @@ use App\Http\Controllers\Account\AddressController;
 use App\Http\Controllers\Account\OrderController;
 use App\Http\Controllers\Account\PasswordController;
 use App\Http\Controllers\Account\ProfileController;
+use App\Http\Controllers\Shop\BlogController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
 use App\Http\Controllers\Shop\CdekWidgetController;
@@ -55,6 +56,28 @@ Route::post('reviews/{product}', [ReviewController::class, 'store'])->whereNumbe
 // The old site's contact and press pages.
 Route::permanentRedirect('more/contact', '/contacts');
 Route::permanentRedirect('press', '/about');
+
+/*
+| Blog. Article addresses are the old WordPress ones (/blog/{slug}). AMP, tag,
+| topic, page-number and WordPress system addresses from the old blog redirect
+| or are gone for good.
+*/
+Route::prefix('blog')->name('blog.')->controller(BlogController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('feed', 'feed')->name('feed');
+    Route::get('c/{slug}', 'category')->where('slug', '[A-Za-z0-9_-]+')->name('category');
+    Route::get('t/{slug}', 'tag')->where('slug', '[^/]+')->name('tag');
+    Route::get('topics/{slug}', 'topic')->where('slug', '[^/]+');
+    Route::get('page/{page}', 'page')->whereNumber('page');
+    Route::permanentRedirect('amp', '/blog');
+    Route::permanentRedirect('comments/feed', '/blog/feed');
+    // WordPress system addresses (wp-json, wp-admin, wp-content, xmlrpc.php…) are gone for good.
+    Route::get('{any}', fn () => abort(410))->where('any', '(wp-[A-Za-z0-9_.-]*|xmlrpc\.php)(/.*)?');
+    Route::get('{slug}/{suffix}', fn (string $slug) => redirect("/blog/{$slug}", 301))
+        ->where('slug', '[A-Za-z0-9_-]+')
+        ->whereIn('suffix', ['amp', 'embed', 'feed']);
+    Route::get('{slug}', 'show')->where('slug', '[A-Za-z0-9_-]+')->name('show');
+});
 
 Route::post('cookie-consent', CookieConsentController::class)->middleware('throttle:30,1')->name('cookie-consent');
 

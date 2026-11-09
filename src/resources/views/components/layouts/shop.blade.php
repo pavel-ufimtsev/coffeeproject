@@ -40,6 +40,7 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
         <link rel="manifest" href="/site.webmanifest">
+        <link rel="alternate" type="application/rss+xml" title="{{ __('Coffee blog') }}" href="{{ route('blog.feed') }}">
         <meta name="theme-color" content="#ffffff">
 
         @fonts(['nunito', 'fira-sans-condensed'])
@@ -131,6 +132,7 @@
                         <h2 class="site-footer__title">{{ __('Company') }}</h2>
                         <p>{{ __('Roasted in Ekaterinburg, delivered across Russia.') }}</p>
                         <a href="{{ route('about') }}" @if (request()->routeIs('about')) aria-current="page" @endif>{{ __('About us') }}</a>
+                        <a href="{{ route('blog.index') }}" @if (request()->routeIs('blog.*')) aria-current="page" @endif>{{ __('Blog') }}</a>
                         <a href="{{ route('wholesale') }}" @if (request()->routeIs('wholesale')) aria-current="page" @endif>{{ __('For business') }}</a>
                         <a href="{{ route('contacts') }}" @if (request()->routeIs('contacts')) aria-current="page" @endif>{{ __('Contacts') }}</a>
                         <a href="{{ config('shop.vk') }}" rel="noopener">{{ __('VK community') }}</a>
