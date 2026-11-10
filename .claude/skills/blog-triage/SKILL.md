@@ -86,7 +86,7 @@ Order matters: a redirect must point to a page that is live.
 4. `POST /posts/{slug}/publish`, unless it is a "Нужны фото" refresh.
 
 **Retire**
-1. Choose `redirect_to`. Prefer a live post on the same subject. Otherwise use the page of the section the reader was really looking for. That is usually the post's own section, but event and shop news filed elsewhere goes to `/blog/c/kofeinye-novosti`. Use `/blog` only if nothing fits. Never redirect to a draft.
+1. Choose `redirect_to`. Prefer a live post on the same subject. Otherwise use the page of the section the reader was really looking for. That is usually the post's own section, but dated event and shop news goes to the closest section, or to `/blog` if none fits. Never redirect to a draft.
 2. PATCH the `triage_*` fields, then `POST /posts/{slug}/archive` with `redirect_to` and a `note`.
 
 **Merge pass** (after everything else in the run)
@@ -97,14 +97,18 @@ Order matters: a redirect must point to a page that is live.
 
 **Links between posts**: keep links to other `/blog/...` posts even while they are drafts; triage will publish or redirect them. At the end of an `all` or `recheck` run, do a link pass. For each post published in the run, find `/blog/{slug}` links whose target is still a draft (not retired: retired posts redirect, which is fine). Turn those links into plain text, with a `note`.
 
-**Sections**: `zavarivanie` (how to brew, equipment), `recepty-kofe` (recipes), `o-kofe` (origins, varieties, processing, tasting), `polza-kofe` (health), `kofe-profi` (for professionals: barista craft, championships worth keeping), `kofeinye-novosti` (news and events). Posts without a section must get one when published.
+**Sections**: `zavarivanie` (how to brew, equipment), `recepty-kofe` (recipes), `o-kofe` (origins, varieties, processing, tasting), `polza-kofe` (health; health topics always stay here), `kofe-profi` (for professionals: barista craft, championships worth keeping). The news section `kofeinye-novosti` was switched off in November 2026 because no news article survived the clean-up. Its address redirects to `/blog`. Do not file posts there; send retired dated news to the most relevant section or `/blog`. Posts without a section must get one when published.
+
+**Before publishing, check for a published duplicate** (`GET /posts?status=published&search=<topic words>`). If one exists, merge into it instead of publishing a second article on the same subject.
 
 ## Brand rules (apply to every word you write or keep)
 
 - Coffee Project started in 2012 with its own coffee shops and roastery (2012–2018). Today it is an online shop selling coffee **roasted to order in Ekaterinburg** with delivery across Russia.
 - Never say or imply we run coffee shops or a roastery **today**. "Наша кофейня", "приходите к нам", "наш обжарщик Тима" and "в нашей обжарочной" must go or move into the past tense ("когда у нас были кофейни…"). Past events may stay as history if the article is still useful.
 - Never mention white-label suppliers or who roasts for us.
-- The public founder is Alexandra Ufimtseva. Never name Pavel Ufimtsev.
+- The public founder is Alexandra Ufimtseva. Never name Pavel Ufimtsev, and do not name former employees of the old coffee shops (baristas, roasters, columnists).
+- Do not name green-coffee suppliers or importers, and do not present other roasters' coffees as products to buy. Profiles of other roasters and suppliers are retired.
+- **Never add facts or figures from your own knowledge** (current prices, new statistics, dates). You may correct clear errors from the article's own context, date old figures ("по данным на 2018 год") and, for health, cite the EFSA/WHO limits listed above.
 - Write natural, friendly Russian. Use «ёлочки» quotes, «—» dashes and no exclamation-mark spam. Keep it factual and avoid medical claims (for health posts, say "исследования показывают", not promises).
 
 ## Safety
