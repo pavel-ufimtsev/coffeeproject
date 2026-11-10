@@ -1,6 +1,6 @@
 # Blog API for AI agents
 
-This JSON API gives an agent full control over the blog at `https://www.coffeeproject.ru/api/blog/v1`. People do the same work in the admin. The admin and the API share the same rules: every text change is saved as a revision, a live post that moves keeps its old address working, and nothing touches the shop's catalog or orders.
+This JSON API gives an agent full control over the blog at `https://www.coffeeproject.ru/api/blog/v1`. People do the same work in the admin at `/admin/blog`: the posts list (with the agent's verdicts and a "Needs a human" filter), the Markdown editor, revisions with a compare view, the image library and sections. The admin and the API share the same rules: every text change is saved as a revision, a live post that moves keeps its old address working, and nothing touches the shop's catalog or orders.
 
 The machine-readable description is at `GET /api/blog/v1/schema` (OpenAPI 3.1).
 

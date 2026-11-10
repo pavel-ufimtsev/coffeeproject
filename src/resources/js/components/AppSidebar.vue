@@ -7,6 +7,7 @@ import {
     LayoutGrid,
     Layers,
     Mail,
+    Newspaper,
     MessageSquareText,
     Package,
     RefreshCw,
@@ -32,6 +33,7 @@ import {
 } from '@/components/ui/sidebar';
 import { home } from '@/routes';
 import { dashboard } from '@/routes/admin';
+import { index as blogIndex } from '@/routes/admin/blog/posts';
 import { index as categoriesIndex } from '@/routes/admin/categories';
 import { index as collectionsIndex } from '@/routes/admin/collections';
 import { edit as deliveryEdit } from '@/routes/admin/delivery';
@@ -58,6 +60,7 @@ const mainNavItems: NavItem[] = [
     { title: 'Reviews', href: reviewsIndex(), icon: MessageSquareText },
     { title: 'Delivery', href: deliveryEdit(), icon: Truck },
     { title: 'Emails', href: emailsEdit(), icon: Mail },
+    { title: 'Blog', href: blogIndex(), icon: Newspaper },
     { title: 'Products', href: productsIndex(), icon: Package },
     { title: 'Categories', href: categoriesIndex(), icon: FolderTree },
     { title: 'Filters', href: filtersIndex(), icon: SlidersHorizontal },

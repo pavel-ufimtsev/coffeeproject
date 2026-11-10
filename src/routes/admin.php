@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\Blog\CategoryController as BlogCategoryController;
+use App\Http\Controllers\Admin\Blog\ImageController as BlogImageController;
+use App\Http\Controllers\Admin\Blog\PostController as BlogPostController;
+use App\Http\Controllers\Admin\Blog\RevisionController as BlogRevisionController;
 use App\Http\Controllers\Admin\Catalog\CategoryController;
 use App\Http\Controllers\Admin\Catalog\CollectionController;
 use App\Http\Controllers\Admin\Catalog\FilterGroupController;
@@ -79,6 +83,22 @@ Route::get('retailcrm/search', [RetailCrmController::class, 'search'])->name('re
 Route::get('retailcrm/unlinked', [RetailCrmController::class, 'unlinked'])->name('retailcrm.unlinked');
 Route::post('retailcrm/ignored', [RetailCrmController::class, 'ignore'])->name('retailcrm.ignored.store');
 Route::delete('retailcrm/ignored/{ignored}', [RetailCrmController::class, 'unignore'])->name('retailcrm.ignored.destroy');
+
+// Blog: posts, the agent's triage verdicts, revisions, images and sections.
+Route::prefix('blog')->name('blog.')->group(function () {
+    Route::post('posts/bulk', [BlogPostController::class, 'bulk'])->name('posts.bulk');
+    Route::post('posts/preview', [BlogPostController::class, 'preview'])->name('posts.preview');
+    Route::post('posts/{post}/restore', [BlogPostController::class, 'restore'])->whereNumber('post')->name('posts.restore');
+    Route::resource('posts', BlogPostController::class)->except('show');
+    Route::post('posts/{post}/status', [BlogPostController::class, 'status'])->name('posts.status');
+    Route::scopeBindings()->group(function () {
+        Route::get('posts/{post}/revisions/{revision}', [BlogRevisionController::class, 'show'])->name('posts.revisions.show');
+        Route::post('posts/{post}/revisions/{revision}/restore', [BlogRevisionController::class, 'restore'])->name('posts.revisions.restore');
+    });
+    Route::get('images/library', [BlogImageController::class, 'library'])->name('images.library');
+    Route::resource('images', BlogImageController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('categories', BlogCategoryController::class)->except('show');
+});
 
 Route::redirect('settings', '/admin/settings/profile')->name('settings');
 
